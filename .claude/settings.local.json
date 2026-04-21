@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python app.py)",
+      "Bash(start http://localhost:5000)",
+      "Bash(curl -s http://localhost:5000/)",
+      "Bash(curl -s http://localhost:5000/static/styles.css)",
+      "Bash(curl:*)",
+      "Bash(.venv/Scripts/pip install:*)",
+      "Bash(.venv/Scripts/python server.py)",
+      "Bash(python -c \"import database; print\\('database OK'\\)\")",
+      "Bash(python -c \"import openai_plugin; print\\('openai_plugin OK'\\)\")",
+      "Bash(python -c \"import ai_plugin; print\\('ai_plugin OK'\\)\")",
+      "Bash(python -c \"import server; print\\('server OK'\\)\")",
+      "Bash(python -c \"from database import get_facility_all_hours; print\\(get_facility_all_hours\\('piscina'\\)\\)\")",
+      "Bash(rm -f chatbot.db)",
+      "Bash(python -c \"from database import get_facility_all_hours; result = get_facility_all_hours\\('piscina'\\); print\\(f'Pool hours entries: {len\\(result\\)}'\\)\")",
+      "Bash(python -c ':*)",
+      "Bash(timeout 15 python -c ':*)",
+      "Bash(timeout 20 python -c ':*)",
+      "Bash(timeout 25 python -c ':*)",
+      "Bash(pip show:*)",
+      "Bash(findstr Version)",
+      "Bash(.venv/Scripts/python.exe:*)",
+      "Bash(.venv/Scripts/pip.exe install:*)",
+      "WebFetch(domain:www.udem.edu.co)",
+      "WebFetch(domain:www.udemedellin.edu.co)"
+    ]
+  }
+}

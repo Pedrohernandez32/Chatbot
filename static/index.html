@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Universidad de Medellín - Asistente Virtual</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 50 60" fill="currentColor">
+                        <path d="M25 0 L50 12 L50 35 L25 60 L0 35 L0 12 Z" fill="#ffffff"/>
+                        <path d="M25 5 L45 15 L45 33 L25 53 L5 33 L5 15 Z" fill="#d32f2f"/>
+                        <path d="M25 10 L40 18 L40 30 L25 45 L10 30 L10 18 Z" fill="#ffffff"/>
+                        <text x="25" y="32" text-anchor="middle" font-size="12" font-weight="bold" fill="#d32f2f">UDM</text>
+                    </svg>
+                </div>
+                <h1>Universidad de Medellín</h1>
+            </div>
+            <p class="subtitle">Asistente Virtual - Resolvemos tus dudas</p>
+        </header>
+
+        <main class="main-content">
+            <section class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot-message">
+                        <div class="message-avatar">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.07 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                            </svg>
+                        </div>
+                        <div class="message-content">
+                            <p>Hola, soy el asistente virtual de la universidad. Puedo ayudarte con información sobre:</p>
+                            <ul>
+                                <li>Horarios de atención</li>
+                                <li>Ubicación y dirección</li>
+                                <li>Carreras y programas</li>
+                                <li>Inscripciones y matrículas</li>
+                                <li>Contacto y teléfonos</li>
+                                <li>Biblioteca y aulas</li>
+                                <li>Becas y ayudas económicas</li>
+                                <li>Admisiones</li>
+                            </ul>
+                            <p>¿En qué puedo ayudarte?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advisor Contact Modal -->
+                <div class="advisor-modal" id="advisorModal">
+                    <div class="advisor-modal-content">
+                        <button class="advisor-modal-close" id="advisorModalClose">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                        <div class="advisor-modal-header">
+                            <div class="advisor-icon">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                                </svg>
+                            </div>
+                            <h2>Hablar con un asesor</h2>
+                            <p>Un asesor humano podrá ayudarte mejor con tu consulta</p>
+                        </div>
+                        <form class="advisor-form" id="advisorForm">
+                            <div class="form-group">
+                                <label for="advisorName">Nombre completo</label>
+                                <input type="text" id="advisorName" placeholder="Tu nombre" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="advisorEmail">Correo electrónico</label>
+                                <input type="email" id="advisorEmail" placeholder="tucorreo@ejemplo.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="advisorPhone">Teléfono (opcional)</label>
+                                <input type="tel" id="advisorPhone" placeholder="300 123 4567">
+                            </div>
+                            <div class="form-group">
+                                <label for="advisorMessage">¿Sobre qué necesitas ayuda?</label>
+                                <textarea id="advisorMessage" rows="3" placeholder="Describe brevemente tu consulta..."></textarea>
+                            </div>
+                            <button type="submit" class="advisor-submit-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                </svg>
+                                Enviar solicitud
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <form class="chat-input-form" id="chatForm">
+                    <div class="input-wrapper">
+                        <input type="text" id="userInput" placeholder="Escribe tu pregunta aquí..." autocomplete="off">
+                        <button type="submit" class="send-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"/>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <aside class="quick-questions">
+                <h3>Preguntas Frecuentes</h3>
+                <div class="questions-grid">
+                    <button class="quick-btn" data-question="¿Cuál es el horario de atención?">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        Horarios
+                    </button>
+                    <button class="quick-btn" data-question="¿Dónde queda la universidad?">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        Ubicación
+                    </button>
+                    <button class="quick-btn" data-question="¿Qué carreras ofrecen?">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                        </svg>
+                        Carreras
+                    </button>
+                    <button class="quick-btn" data-question="¿Cómo me inscribo?">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="12" y1="18" x2="12" y2="12"/>
+                            <line x1="9" y1="15" x2="15" y2="15"/>
+                        </svg>
+                        Inscripción
+                    </button>
+                    <button class="quick-btn" data-question="¿Cuáles son los contactos?">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/>
+                        </svg>
+                        Contacto
+                    </button>
+                    <button class="quick-btn" data-question="¿Qué becas hay disponibles?">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Becas
+                    </button>
+                    <button class="quick-btn" data-question="¿Cómo funciona la admisión?">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 11l3 3L22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                        Admisión
+                    </button>
+                    <button class="quick-btn" data-question="¿Cuándo abre la biblioteca?">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                        Biblioteca
+                    </button>
+                </div>
+            </aside>
+        </main>
+
+        <footer class="footer">
+            <p>Facultad Chatbot - Sistema de Atención Virtual</p>
+            <p class="location">Cra. 87 #30-65, Medellín, Belén</p>
+        </footer>
+    </div>
+
+    <script src="chatbot.js"></script>
+</body>
+</html>
