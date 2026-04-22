@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Universidad de Medellín</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --r: #C8102E;
+            --rd: #9B0B22;
+            --rl: #F5E6E8;
+            --ink: #1C1410;
+            --ink2: #5C4A42;
+            --ink3: #9C8880;
+            --bg: #FAFAF8;
+            --bg2: #F3F0EC;
+            --bg3: #FFFFFF;
+            --bdr: rgba(200, 16, 46, 0.14);
+            --bdr2: rgba(200, 16, 46, 0.28);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--r) 0%, var(--rd) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-page-container {
+            background: var(--bg3);
+            padding: 32px 36px;
+            border-radius: 18px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .login-logo {
+            width: 54px;
+            height: 54px;
+            margin: 0 auto 14px;
+            background: var(--r);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 18px;
+            font-family: 'Syne', sans-serif;
+        }
+        .login-header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+        .login-header p {
+            font-size: .75rem;
+            color: var(--ink3);
+        }
+        .login-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+        .login-tab {
+            flex: 1;
+            padding: 9px 16px;
+            border: 1.5px solid var(--bdr2);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--r);
+            font-size: .78rem;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .login-tab:hover {
+            background: var(--rl);
+        }
+        .login-tab.active {
+            background: var(--r);
+            border-color: var(--r);
+            color: #fff;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: .72rem;
+            font-weight: 500;
+            color: var(--ink2);
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--bdr2);
+            border-radius: 8px;
+            font-size: .84rem;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .form-group input:focus {
+            border-color: var(--r);
+        }
+        .form-group input::placeholder {
+            color: var(--ink3);
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--r);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: .85rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: background .2s;
+            margin-top: 8px;
+        }
+        .btn-primary:hover {
+            background: var(--rd);
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: .78rem;
+            color: var(--ink3);
+        }
+        .login-footer a {
+            color: var(--r);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+        .admin-key-group {
+            display: none;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 16px;
+        }
+        .back-link a {
+            color: var(--ink3);
+            text-decoration: none;
+            font-size: .75rem;
+        }
+        .back-link a:hover {
+            color: var(--r);
+        }
+        .error-msg {
+            background: var(--rl);
+            color: var(--r);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: .78rem;
+            margin-bottom: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page-container">
+        <div class="login-header">
+            <div class="login-logo">UDM</div>
+            <h1>Universidad de Medellín</h1>
+            <p>Asistente Virtual</p>
+        </div>
+
+        <div class="login-tabs">
+            <button class="login-tab active" onclick="switchLoginTab('user', this)">Usuario</button>
+            <button class="login-tab" onclick="switchLoginTab('admin', this)">Administrador</button>
+        </div>
+
+        <div id="errorMsg" class="error-msg" style="display:none;"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Correo electrónico</label>
+                <input type="email" id="loginEmail" placeholder="tu@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Contraseña</label>
+                <input type="password" id="loginPassword" placeholder="Tu contraseña" required>
+            </div>
+            <div class="form-group" id="rememberMeGroup">
+                <label for="rememberMe">
+                    <input type="checkbox" id="rememberMe" checked style="margin-right:6px;">
+                    Recuérdame en este navegador
+                </label>
+            </div>
+            <div class="form-group admin-key-group" id="adminKeyGroup">
+                <label for="adminKey">Clave de administrador</label>
+                <input type="password" id="adminKey" placeholder="Clave de administrador">
+            </div>
+            <button type="submit" class="btn-primary" id="loginBtn">Iniciar Sesión</button>
+        </form>
+
+        <p class="login-footer user-section">
+            ¿No tienes cuenta? <a href="/register">Regístrate aquí</a>
+        </p>
+
+        <div class="back-link">
+            <a href="/">← Volver al chat</a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+
+        function switchLoginTab(tab, btn) {
+            document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+
+            const adminKeyGroup = document.getElementById('adminKeyGroup');
+            const rememberMeGroup = document.getElementById('rememberMeGroup');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginFooter = document.querySelector('.login-footer');
+
+            if (tab === 'admin') {
+                adminKeyGroup.style.display = 'block';
+                rememberMeGroup.style.display = 'none';
+                loginBtn.textContent = 'Entrar como Admin';
+                loginFooter.style.display = 'none';
+            } else {
+                adminKeyGroup.style.display = 'none';
+                rememberMeGroup.style.display = 'block';
+                loginBtn.textContent = 'Iniciar Sesión';
+                loginFooter.style.display = 'block';
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const remember = document.getElementById('rememberMe').checked;
+            const adminKey = document.getElementById('adminKey').value;
+
+            const activeTab = document.querySelector('.login-tab.active');
+            const isAdmin = activeTab && activeTab.textContent === 'Administrador';
+
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, remember, adminKey, isAdmin })
+                });
+
+                if (response.ok) {
+                    window.location.href = '/';
+                } else {
+                    const data = await response.json();
+                    errorMsg.textContent = data.error || 'Error al iniciar sesión';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (e) {
+                errorMsg.textContent = 'Error al iniciar sesión';
+                errorMsg.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

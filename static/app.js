@@ -1,3 +1,326 @@
+// API Endpoint
+const API_URL = 'http://localhost:5000';
+
+// Current user state
+let currentUser = null;
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+    checkAuth();
+});
+
+/**
+ * Modal functions
+ */
+function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}
+
+function switchModal(fromModalId, toModalId) {
+    closeModal(fromModalId);
+    openModal(toModalId);
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+});
+
+/**
+ * Auth functions
+ */
+async function checkAuth() {
+    try {
+        const response = await fetch(`${API_URL}/api/auth/me`);
+        if (response.ok) {
+            const data = await response.json();
+            currentUser = data.user;
+            updateUserUI();
+        }
+    } catch (e) {
+        currentUser = null;
+    }
+}
+
+function updateUserUI() {
+    const userArea = document.getElementById('userArea');
+    if (!userArea) return;
+
+    if (currentUser) {
+        userArea.innerHTML = `
+            <span class="user-welcome">Bienvenido, ${currentUser.username}</span>
+            ${currentUser.is_admin ? '<button class="admin-btn" onclick="openAdminPanel()">Admin</button>' : ''}
+            <button class="logout-btn" onclick="logout()">Salir</button>
+        `;
+    } else {
+        userArea.innerHTML = `
+            <button class="login-btn" onclick="openModal('loginModal')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+                Iniciar Sesión
+            </button>
+        `;
+    }
+}
+
+async function logout() {
+    try {
+        await fetch(`${API_URL}/api/auth/logout`, { method: 'POST' });
+    } catch (e) {
+        console.error('Logout error:', e);
+    }
+    currentUser = null;
+    closeAdminPanel();
+    updateUserUI();
+}
+
+// Login form handler
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const remember = document.getElementById('rememberMe').checked;
+            const adminKey = document.getElementById('adminKey').value;
+
+            const activeTab = document.querySelector('.login-tab.active');
+            const isAdmin = activeTab && activeTab.textContent === 'Administrador';
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, remember, adminKey, isAdmin })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    closeModal('loginModal');
+                    updateUserUI();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Error al iniciar sesión');
+                }
+            } catch (e) {
+                alert('Error al iniciar sesión');
+            }
+        });
+    }
+});
+
+// Login tab switching
+function switchLoginTab(tab, btn) {
+    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    const adminKeyGroup = document.querySelector('.admin-key-group');
+    const rememberMeGroup = document.getElementById('rememberMeGroup');
+    const loginBtn = document.getElementById('loginBtn');
+    const modalFooter = document.querySelector('.modal-footer');
+
+    if (tab === 'admin') {
+        adminKeyGroup.style.display = 'block';
+        rememberMeGroup.style.display = 'none';
+        loginBtn.textContent = 'Entrar como Admin';
+        modalFooter.style.display = 'none';
+    } else {
+        adminKeyGroup.style.display = 'none';
+        rememberMeGroup.style.display = 'block';
+        loginBtn.textContent = 'Iniciar Sesión';
+        modalFooter.style.display = 'block';
+    }
+}
+
+// Register form handler
+document.addEventListener('DOMContentLoaded', () => {
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    closeModal('registerModal');
+                    updateUserUI();
+                    // Clear form
+                    registerForm.reset();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Error al registrarse');
+                }
+            } catch (e) {
+                alert('Error al registrarse');
+            }
+        });
+    }
+});
+
+/**
+ * Admin Panel functions
+ */
+function openAdminPanel() {
+    const adminPanel = document.getElementById('adminPanel');
+    if (adminPanel) {
+        adminPanel.style.display = 'block';
+        showAdminTab('unknown');
+    }
+}
+
+function closeAdminPanel() {
+    const adminPanel = document.getElementById('adminPanel');
+    if (adminPanel) {
+        adminPanel.style.display = 'none';
+    }
+}
+
+function showAdminTab(tab) {
+    const tabs = document.querySelectorAll('.admin-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+
+    if (tab === 'unknown') {
+        loadUnknownQuestions();
+    } else {
+        loadLearnedResponses();
+    }
+}
+
+async function loadUnknownQuestions() {
+    try {
+        const response = await fetch(`${API_URL}/api/admin/unknown`);
+        if (response.ok) {
+            const data = await response.json();
+            renderUnknownQuestions(data.questions);
+        } else {
+            document.getElementById('adminContent').innerHTML = '<p>No tienes acceso a esta información.</p>';
+        }
+    } catch (e) {
+        document.getElementById('adminContent').innerHTML = '<p>Error al cargar preguntas.</p>';
+    }
+}
+
+function renderUnknownQuestions(questions) {
+    const content = document.getElementById('adminContent');
+    if (questions.length === 0) {
+        content.innerHTML = '<p class="no-data">No hay preguntas pendientes de revisión.</p>';
+        return;
+    }
+    content.innerHTML = questions.map(q => `
+        <div class="admin-item">
+            <div class="admin-item-header">
+                <span class="votes">👍 ${q.upvotes} 👎 ${q.downvotes}</span>
+                <span class="date">${new Date(q.created_at).toLocaleDateString()}</span>
+            </div>
+            <p class="question"><strong>Pregunta:</strong> ${escapeHtml(q.question)}</p>
+            <p class="answer"><strong>Respuesta anterior:</strong> ${escapeHtml(q.answer || 'Sin respuesta')}</p>
+            <form class="learn-form" onsubmit="createLearnedResponse(event, ${q.id})">
+                <input type="hidden" name="question" value="${escapeHtml(q.question)}">
+                <input type="text" name="answer" placeholder="Nueva respuesta" required>
+                <input type="text" name="keywords" placeholder="Palabras clave (separadas por coma)" value="${escapeHtml(q.question.toLowerCase())}" required>
+                <button type="submit" class="create-btn">Crear respuesta aprendida</button>
+            </form>
+        </div>
+    `).join('');
+}
+
+async function loadLearnedResponses() {
+    try {
+        const response = await fetch(`${API_URL}/api/admin/learn`);
+        if (response.ok) {
+            const data = await response.json();
+            renderLearnedResponses(data.responses);
+        }
+    } catch (e) {
+        document.getElementById('adminContent').innerHTML = '<p>Error al cargar respuestas aprendidas.</p>';
+    }
+}
+
+function renderLearnedResponses(responses) {
+    const content = document.getElementById('adminContent');
+    if (responses.length === 0) {
+        content.innerHTML = '<p class="no-data">No hay respuestas aprendidas.</p>';
+        return;
+    }
+    content.innerHTML = responses.map(r => `
+        <div class="admin-item">
+            <div class="admin-item-header">
+                <span class="usage">Usada ${r.usage_count} veces</span>
+                <span class="date">${new Date(r.created_at).toLocaleDateString()}</span>
+            </div>
+            <p class="keywords"><strong>Palabras clave:</strong> ${escapeHtml(r.keywords)}</p>
+            <p class="answer-text"><strong>Respuesta:</strong> ${escapeHtml(r.answer)}</p>
+            <button class="delete-btn" onclick="deleteLearnedResponse(${r.id})">Eliminar</button>
+        </div>
+    `).join('');
+}
+
+async function createLearnedResponse(event, convId) {
+    event.preventDefault();
+    const form = event.target;
+    const answer = form.answer.value;
+    const keywords = form.keywords.value;
+    const question = form.question.value;
+
+    try {
+        const response = await fetch(`${API_URL}/api/admin/learn`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question, answer, keywords })
+        });
+
+        if (response.ok) {
+            alert('Respuesta aprendida creada');
+            showAdminTab('learned');
+        }
+    } catch (e) {
+        alert('Error al crear respuesta aprendida');
+    }
+}
+
+async function deleteLearnedResponse(id) {
+    if (!confirm('¿Estás seguro de eliminar esta respuesta aprendida?')) return;
+
+    try {
+        const response = await fetch(`${API_URL}/api/admin/learn/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            loadLearnedResponses();
+        }
+    } catch (e) {
+        alert('Error al eliminar respuesta');
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 // DOM Elements
 const chatBody = document.getElementById('chatBody');
 const messagesContainer = document.getElementById('messagesContainer');
@@ -90,57 +413,97 @@ async function logout() {
 }
 
 // Login form handler
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const remember = document.getElementById('rememberMe').checked;
+            const adminKey = document.getElementById('adminKey').value;
 
-    try {
-        const response = await fetch(`${API_URL}/api/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            const activeTab = document.querySelector('.login-tab.active');
+            const isAdmin = activeTab && activeTab.textContent === 'Administrador';
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, remember, adminKey, isAdmin })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    closeModal('loginModal');
+                    updateUserUI();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Error al iniciar sesión');
+                }
+            } catch (e) {
+                alert('Error al iniciar sesión');
+            }
         });
-
-        if (response.ok) {
-            const data = await response.json();
-            currentUser = data.user;
-            closeModal('loginModal');
-            updateUserUI();
-        } else {
-            const data = await response.json();
-            alert(data.error || 'Error al iniciar sesión');
-        }
-    } catch (e) {
-        alert('Error al iniciar sesión');
     }
 });
 
+// Login tab switching
+function switchLoginTab(tab, btn) {
+    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    const adminKeyGroup = document.querySelector('.admin-key-group');
+    const rememberMeGroup = document.getElementById('rememberMeGroup');
+    const loginBtn = document.getElementById('loginBtn');
+    const modalFooter = document.querySelector('.modal-footer');
+
+    if (tab === 'admin') {
+        adminKeyGroup.style.display = 'block';
+        rememberMeGroup.style.display = 'none';
+        loginBtn.textContent = 'Entrar como Admin';
+        modalFooter.style.display = 'none';
+    } else {
+        adminKeyGroup.style.display = 'none';
+        rememberMeGroup.style.display = 'block';
+        loginBtn.textContent = 'Iniciar Sesión';
+        modalFooter.style.display = 'block';
+    }
+}
+
 // Register form handler
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('registerUsername').value;
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
+document.addEventListener('DOMContentLoaded', () => {
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
 
-    try {
-        const response = await fetch(`${API_URL}/api/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password })
+            try {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    closeModal('registerModal');
+                    updateUserUI();
+                    // Clear form
+                    registerForm.reset();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Error al registrarse');
+                }
+            } catch (e) {
+                alert('Error al registrarse');
+            }
         });
-
-        if (response.ok) {
-            const data = await response.json();
-            currentUser = data.user;
-            closeModal('registerModal');
-            updateUserUI();
-        } else {
-            const data = await response.json();
-            alert(data.error || 'Error al registrarse');
-        }
-    } catch (e) {
-        alert('Error al registrarse');
     }
 });
 

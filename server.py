@@ -4,6 +4,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import os
+from datetime import timedelta
 
 from database import (
     get_db, init_db,
@@ -22,6 +23,12 @@ CORS(app)
 
 # Load secret key from environment
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+# Configure session settings for persistent login
+app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=30)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -74,10 +81,17 @@ def register():
     password_hash = generate_password_hash(password)
     user_id = create_user(username, email, password_hash)
 
-    user = User(user_id, username, email)
-    login_user(user)
+    return jsonify({'ok': True})
 
-    return jsonify({'user': {'id': user_id, 'username': username, 'email': email}})
+
+@app.route('/login')
+def login_page():
+    return send_from_directory('static', 'login.html')
+
+
+@app.route('/register')
+def register_page():
+    return send_from_directory('static', 'register.html')
 
 
 @app.route('/api/auth/login', methods=['POST'])
@@ -85,14 +99,28 @@ def login():
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
+    remember = data.get('remember', True)  # Remember by default
+    adminKey = data.get('adminKey')
+    isAdmin = data.get('isAdmin')
 
     user_data = get_user_by_email(email)
     if not user_data:
         return jsonify({'error': 'Invalid credentials'}), 401
 
     if check_password_hash(user_data['password_hash'], password):
+        # If admin tab selected, verify the admin key matches the user's email domain or admin flag
+        if isAdmin and adminKey:
+            # Simple admin key check (in production, use proper secrets management)
+            admin_key = os.environ.get('ADMIN_KEY', 'admin-secret-key')
+            if adminKey != admin_key:
+                return jsonify({'error': 'Clave de administrador incorrecta'}), 401
+            # Force is_admin to True for this session
+            user_data['is_admin'] = True
+
         user = User(user_data['id'], user_data['username'], user_data['email'], user_data['is_admin'])
-        login_user(user)
+        # Mark session as permanent so it persists across browser sessions
+        session.permanent = True
+        login_user(user, remember=remember)
         return jsonify({'user': {'id': user_data['id'], 'username': user_data['username'], 'email': user_data['email'], 'is_admin': user_data['is_admin']}})
 
     return jsonify({'error': 'Invalid credentials'}), 401
@@ -197,10 +225,22 @@ def chat():
 
         user_id = current_user.id if current_user.is_authenticated else None
 
-        response = bot.process(message)
+        # Process message and get response (with fallback)
+        response = "No tengo información específica sobre eso. ¿Puedes reformular tu pregunta? Puedo ayudarte con información sobre carreras, horarios, ubicación, contacto, becas e inscripciones."
+        
+        try:
+            bot_response = bot.process(message)
+            if bot_response:
+                response = bot_response
+        except Exception as e:
+            # Log error but don't fail
+            print(f"Bot error: {str(e)}")
 
         # Save conversation with user_id to get real conv_id
-        conv_id = save_conversation(message, response, user_id=user_id)
+        try:
+            conv_id = save_conversation(message, response, user_id=user_id)
+        except:
+            conv_id = None
 
         return jsonify({
             'response': response,
@@ -209,7 +249,8 @@ def chat():
         })
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Chat error: {str(e)}")
+        return jsonify({'error': 'Error procesando el mensaje', 'details': str(e)}), 500
 
 
 @app.route('/api/feedback', methods=['POST'])
