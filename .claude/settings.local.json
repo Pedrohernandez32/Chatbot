@@ -25,7 +25,8 @@
       "Bash(.venv/Scripts/python.exe:*)",
       "Bash(.venv/Scripts/pip.exe install:*)",
       "WebFetch(domain:www.udem.edu.co)",
-      "WebFetch(domain:www.udemedellin.edu.co)"
+      "WebFetch(domain:www.udemedellin.edu.co)",
+      "Bash(pkill -f \"python app.py\")"
     ]
   }
 }

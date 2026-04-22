@@ -1,68 +1,99 @@
-// FAQ Database - Based on ai_plugin.py
+// FAQ Database - Universidad de Medellín
 const FAQ = {
-    horario: "La universidad atiende de lunes a viernes de 9 a 18 hs.",
-    ubicacion: "La universidad se encuentra en Cra. 87 #30-65, Medellín, Belén, Medellín, Antioquia.",
-    carrera: "Ofrecemos Ingeniería, Administración y Psicología.",
-    inscripcion: "La inscripción para el próximo cuatrimestre comienza en marzo.",
-    contacto: "Puedes escribir a info@udem.edu.co o llamar al (011) 1234-5678.",
-    titulo: "El título que entregamos es de grado universitario.",
-    aulas: "Las clases se dictan en el edificio principal y en el anexo de Ciencias Sociales.",
-    biblioteca: "La biblioteca abre de lunes a viernes de 8 a 20 hs y sábados de 9 a 14 hs.",
-    becas: "Las becas y ayudas económicas se gestionan en Secretaría Estudiantil.",
-    profesores: "Los datos de los profesores se publican en la plataforma académica y el sitio web de la universidad.",
-    materias: "Las materias disponibles están en el plan de estudios y en la oferta académica del cuatrimestre.",
-    admision: "La admisión se realiza con un examen de ingreso; consulta fechas y requisitos en el sitio oficial."
+    horario: "Horario de atención: Lunes a viernes de 8:00 a.m. a 12:00 m. y de 2:00 p.m. a 6:00 p.m.",
+
+    ubicacion: "Sede principal: Carrera 87 N° 30 – 65, Medellín – Colombia. Sede Bogotá: Calle 57 # 9-52, Chapinero.",
+
+    carreras: `<strong>Carreras disponibles:</strong><br>
+• Administración de Empresas (SNIES: 1514)<br>
+• Ciencia Política (SNIES: 105770)<br>
+• Computación Científica (SNIES: 103268)<br>
+• Comunicación Gráfica Publicitaria (SNIES: 11128)<br>
+• Comunicación y Entretenimiento Digital (SNIES: 103763)<br>
+• Comunicación y Lenguajes Audiovisuales (SNIES: 14880)<br>
+• Comunicación y Relaciones Corporativas (SNIES: 3136)<br>
+• Derecho (SNIES: 1512)<br>
+• Diseño y Gestión de Espacios (SNIES: 105470)<br>
+• Diseño y Gestión de la Moda y el Textil (SNIES: 105469)<br>
+• Diseño y Gestión del Producto (SNIES: 105468)<br>
+• Economía (SNIES: 1513)<br>
+• Ingeniería Ambiental (SNIES: 3193)<br>
+• Ingeniería Civil (SNIES: 1516)<br>
+• Ingeniería de Sistemas (SNIES: 3134)<br>
+• Ingeniería Financiera (SNIES: 7255)<br>
+• Ingeniería Industrial (SNIES: 103149)<br>
+• Investigación Criminal (SNIES: 90781)<br>
+• Mercadeo (SNIES: 52403)<br>
+• Negocios Internacionales (SNIES: 15243)<br>
+• Psicología`,
+
+    inscripcion: "Para inscribirte, debes contactar a la universidad por teléfono o visitar su sede. El proceso de inscripción se realiza directamente en la universidad.",
+
+    contacto: `Contacto Universidad de Medellín:<br>
+• Teléfono: +57 (604) 590 45 00 – +57 (604) 590 6999<br>
+• Sede principal: Carrera 87 N° 30 – 65, Medellín – Colombia<br>
+• Sede Bogotá: Calle 57 # 9-52, Chapinero<br>
+• Notificaciones judiciales: corresrec@udemedellin.edu.co`,
+
+    becas: `<strong>Becas y Estímulos disponibles:</strong><br>
+• BECA SOCIAL<br>
+• BECA DE HONOR<br>
+• BECA DE EXCELENCIA<br>
+• BECA MEJORES SABER PRO<br>
+• ESTÍMULOS MONITORÍAS ACADÉMICAS<br>
+• ESTÍMULOS ACTIVIDADES DEPORTIVAS<br>
+• ESTÍMULOS ACTIVIDADES CULTURALES Y ARTÍSTICAS<br>
+• ESTÍMULO PARA PARTICIPACIONES DESTACADAS EN EVENTOS ACADÉMICOS EXTRACURRICULARES DE RECONOCIDO PRESTIGIO NACIONAL E INTERNACIONAL<br>
+• ESTÍMULO MULTILINGÜISMO`,
+
+    admision: "La institución es de educación superior sujeta a la inspección y vigilancia del Ministerio de Educación Nacional. Para información sobre admisión, contacta a la universidad directamente.",
+
+    biblioteca: "Para información sobre la biblioteca, contacta a la universidad por teléfono o visita su sede principal.",
+
+    general: "Universidad de Medellín - Puedo ayudarte con información sobre carreras, contacto, horarios, becas e inscripciones. ¿Qué te gustaría saber?"
 };
 
 // Synonyms for flexible matching
 const SYNONYMS = {
     horario: [
         "horario", "cuando abre", "cuando cierra", "a que hora",
-        "que hora", "jornada", "horas", "atencion", "abren", "cierran"
+        "que hora", "jornada", "horas", "atencion", "abren", "cierran",
+        "lunes", "viernes", "8:00", "12:00", "2:00", "18:00"
     ],
     ubicacion: [
         "donde", "ubicacion", "direccion", "localizacion",
-        "sitio", "direccion exacta", "queda", "ubicada", "lugar"
+        "sitio", "direccion exacta", "queda", "ubicada", "lugar",
+        "medellin", "bogota", "sede", "carrera 87", "chapinero"
     ],
     carrera: [
         "carrera", "programa", "oferta academica", "especialidad",
-        "estudio", "grado", "carreras", "estudiar", "profesion"
+        "estudio", "grado", "carreras", "estudiar", "profesion",
+        "administracion", "ingenieria", "comunicacion", "derecho",
+        "psicologia", "economia", "diseno", "mercadeo", "negocios",
+        "snies", "carreras disponibles", "que carreras"
     ],
     inscripcion: [
         "inscripcion", "matricula", "registro", "inscribirme",
-        "preinscripcion", "inscribirse", "plazo", "inscribir", "requisitos"
+        "preinscripcion", "inscribirse", "plazo", "inscribir", "requisitos",
+        "como me inscribo", "inscribir"
     ],
     contacto: [
-        "contacto", "telefono", "email", "correo",
-        "llamar", "telefonos", "contactar", "escribir", "comunicar"
-    ],
-    titulo: [
-        "titulo", "grado", "certificado", "diploma",
-        "titulacion", "certifica", "recibo"
-    ],
-    aulas: [
-        "aula", "salon", "edificio", "clase",
-        "sala", "aulas", "salones", "donde dan clases"
-    ],
-    biblioteca: [
-        "biblioteca", "libros", "sala de lectura",
-        "prestamo", "libreria", "leer", "estudiar biblioteca"
+        "contacto", "telefono", "email", "correo", "llamar",
+        "telefonos", "contactar", "escribir", "comunicar", "whatsapp",
+        "notificaciones judiciales", "corresrec"
     ],
     becas: [
-        "becas", "ayuda economica", "subsidio",
-        "financiacion", "descuento", "beca", "pago", "costo"
-    ],
-    profesores: [
-        "profesores", "docentes", "catedraticos",
-        "maestros", "jefes de catedra", "profesor", "docente"
-    ],
-    materias: [
-        "materias", "asignaturas", "curso",
-        "cursos", "clases", "materia", "asignatura", "ver materias"
+        "becas", "ayuda economica", "subsidio", "financiacion",
+        "descuento", "beca", "pago", "costo", "estímulos", "monitorias",
+        "beca social", "beca honor", "beca excelencia", "becas y estimulos"
     ],
     admision: [
-        "admision", "ingreso", "examen",
-        "prueba", "requisitos", "entrar", "admitir", "ingresar"
+        "admision", "ingreso", "examen", "prueba", "requisitos",
+        "entrar", "admitir", "ingresar", "ministerio de educacion"
+    ],
+    biblioteca: [
+        "biblioteca", "libros", "sala de lectura", "préstamo",
+        "libreria", "leer", "estudiar biblioteca"
     ]
 };
 
@@ -72,7 +103,7 @@ const SYNONYMS = {
 function normalizeText(text) {
     return text
         .normalize('NFKD')
-        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[̀-ͯ]/g, '')
         .toLowerCase()
         .replace(/[^\w\s]/g, ' ')
         .replace(/\s+/g, ' ')
@@ -136,14 +167,7 @@ function getResponse(prompt) {
         return FAQ[topic];
     }
 
-    const promptNorm = normalizeText(prompt);
-    const keywords = ['universidad', 'pregunta', 'informacion', 'profesor', 'campus', 'hola', 'ayuda'];
-
-    if (keywords.some(word => promptNorm.includes(word))) {
-        return "Sobre la universidad puedo decirte horarios, ubicación, inscripciones, carreras y más. Prueba preguntando sobre algo específico como horarios, ubicación o becas.";
-    }
-
-    return "No estoy seguro de entender tu pregunta. Puedo ayudarte con información sobre horarios, ubicación, carreras, inscripciones, becas, biblioteca y más. ¿Podrías reformular tu pregunta?";
+    return FAQ.general;
 }
 
 // DOM Elements
