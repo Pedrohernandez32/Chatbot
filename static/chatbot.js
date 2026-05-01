@@ -1,5 +1,6 @@
 // ============================================================
 //  CHATBOT UNIVERSIDAD DE MEDELLÍN — chatbot.js
+//  Mantiene API con Ollama + UI del código proporcionado
 // ============================================================
 
 const msgsEl = document.getElementById('msgs');
@@ -96,112 +97,50 @@ function outlineBtn(url, label) {
     </svg>${label}</a>`;
 }
 
-// ── Respuestas del chatbot ────────────────────────────────────
-function getReply(q) {
-  const ql = q.toLowerCase();
+// ── Enviar mensaje (mantiene API con Ollama) ────────────────────
+async function sendMessage(text) {
+  if (!text.trim()) return;
 
-  if (ql.includes('horario') || ql.includes('hora') || ql.includes('atención'))
-    return `Nuestros horarios de atención son:<br><br>
-      • <strong>Lun–Vie:</strong> 7:00 a.m. – 8:00 p.m.<br>
-      • <strong>Sábados:</strong> 8:00 a.m. – 1:00 p.m.<br><br>
-      Algunas dependencias manejan horarios propios. ¿Necesitas info de una oficina específica?`;
+  addUserMsg(text);
+  inpEl.value = '';
+  inpEl.disabled = true;
+  showTyping();
 
-  if (ql.includes('ubic') || ql.includes('dónde') || ql.includes('queda') || ql.includes('dirección'))
-    return `Estamos en <strong>Cra. 87 #30-65, Belén, Medellín</strong>.<br><br>
-      Puedes llegar en Metro hasta <em>San Javier</em> y tomar una ruta alimentadora. También hay parqueadero en el campus.
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await response.json();
+    hideTyping();
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    addBotMsg(data.response);
+  } catch (error) {
+    hideTyping();
+    addBotMsg(`Lo siento, hubo un error al procesar tu mensaje. Por favor intenta de nuevo.
       <div class="btn-row">
-        ${linkBtn('https://maps.google.com/?q=Universidad+de+Medellin,+Belen', 'Ver en Google Maps')}
-      </div>`;
-
-  if (ql.includes('carrera') || ql.includes('program') || ql.includes('ofrec'))
-    return `Ofrecemos programas en:<br>
-      <ul>
-        <li>Ingenierías y Ciencias Básicas</li>
-        <li>Ciencias Económicas y Administrativas</li>
-        <li>Ciencias Sociales y Humanas</li>
-        <li>Derecho</li>
-        <li>Comunicación</li>
-      </ul>
-      También tenemos <strong>especializaciones, maestrías y doctorados</strong>.
-      <div class="btn-row">
-        ${linkBtn('https://admisiones.udemedellin.edu.co', 'Ver todos los programas')}
-        ${outlineBtn('https://admisiones.udemedellin.edu.co', 'Portal de admisiones')}
-      </div>`;
-
-  if (ql.includes('inscri') || ql.includes('matrícula'))
-    return `Para inscribirte puedes:<br><br>
-      1. Diligenciar el formulario en línea<br>
-      2. Adjuntar los documentos requeridos<br>
-      3. Realizar el pago de inscripción<br><br>
-      El proceso es rápido y puedes hacerlo desde casa.
-      <div class="btn-row">
-        ${linkBtn('https://admisiones.udemedellin.edu.co', 'Iniciar inscripción ahora')}
-      </div>`;
-
-  if (ql.includes('contact') || ql.includes('teléfono') || ql.includes('llamar'))
-    return `Nuestros canales de contacto:<br><br>
-      • <strong>Tel:</strong> (604) 340 5555<br>
-      • <strong>Email:</strong> info@udem.edu.co<br>
-      • <strong>WhatsApp:</strong> 300 000 0000<br>
-      • Presencialmente en Belén
-      <div class="btn-row">
-        ${outlineBtn('https://admisiones.udemedellin.edu.co', 'Portal de admisiones')}
-      </div>`;
-
-  if (ql.includes('beca') || ql.includes('ayuda') || ql.includes('económi') || ql.includes('financ') || ql.includes('descuento'))
-    return `Contamos con varias formas de apoyo económico:<br>
-      <ul>
-        <li>Becas por mérito académico</li>
-        <li>Becas deportivas y culturales</li>
-        <li>Créditos ICETEX</li>
-        <li>Descuentos para egresados y familias</li>
-        <li>Auxilio socioeconómico</li>
-      </ul>
-      ¿Deseas conocer los requisitos y cómo aplicar?
-      <div class="btn-row">
-        ${linkBtn('https://admisiones.udemedellin.edu.co/becas-descuentos-y-financiacion-de-pregrado/', 'Ver becas y financiación')}
-        ${outlineBtn('https://admisiones.udemedellin.edu.co', 'Portal de admisiones')}
-      </div>`;
-
-  if (ql.includes('admis'))
-    return `El proceso de admisión tiene estos pasos:<br><br>
-      1. <strong>Inscripción</strong> en línea o presencial<br>
-      2. <strong>Entrega</strong> de documentos requeridos<br>
-      3. <strong>Prueba</strong> de aptitud (algunos programas)<br>
-      4. <strong>Confirmación</strong> de admisión<br><br>
-      ¿Te interesa algún programa específico?
-      <div class="btn-row">
-        ${linkBtn('https://admisiones.udemedellin.edu.co', 'Iniciar proceso de admisión')}
-      </div>`;
-
-  if (ql.includes('bibliote'))
-    return `La <strong>Biblioteca Alfonso Mora Naranjo</strong> atiende:<br><br>
-      • Lun–Vie: 7:00 a.m. – 9:00 p.m.<br>
-      • Sábados: 8:00 a.m. – 5:00 p.m.<br><br>
-      Ofrece bases de datos digitales, salas de estudio y préstamo de libros físicos y digitales.`;
-
-  // Respuesta por defecto
-  return `Gracias por tu mensaje. Para orientarte mejor, visita nuestro portal oficial o contáctanos directamente.
-    <div class="btn-row">
-      ${linkBtn('https://admisiones.udemedellin.edu.co', 'Visitar portal oficial')}
-    </div>`;
+        ${outlineBtn('https://admisiones.udemedellin.edu.co', 'Visitar portal oficial')}
+      </div>`);
+  } finally {
+    inpEl.disabled = false;
+    inpEl.focus();
+  }
 }
 
-// ── Enviar mensaje ────────────────────────────────────────────
+// Función	go() para enviar desde el formulario
 function go() {
   const val = inpEl.value.trim();
   if (!val) return;
-  addUserMsg(val);
-  inpEl.value = '';
-  showTyping();
-  const delay = 900 + Math.random() * 400;
-  setTimeout(() => {
-    hideTyping();
-    addBotMsg(getReply(val));
-  }, delay);
+  sendMessage(val);
 }
 
-// También permite enviar desde las pills y chips
+// Permite enviar desde las pills y chips
 function sendQ(q) {
   inpEl.value = q;
   go();
@@ -219,4 +158,63 @@ function submitModal() {
         ${outlineBtn('https://admisiones.udemedellin.edu.co', 'Visitar portal mientras tanto')}
       </div>`);
   }, 200);
+}
+
+// ── Event Listeners ────────────────────────────────────────────
+const chatForm = document.getElementById('chatForm');
+if (chatForm) {
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    go();
+  });
+}
+
+const quickButtons = document.querySelectorAll('.quick-btn');
+quickButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const question = btn.dataset.question;
+    if (question) {
+      sendMessage(question);
+    }
+  });
+});
+
+// Advisor Modal Events
+const advisorModal = document.getElementById('advisorModal');
+const advisorModalClose = document.getElementById('advisorModalClose');
+const advisorForm = document.getElementById('advisorForm');
+
+if (advisorModalClose) {
+  advisorModalClose.addEventListener('click', () => {
+    advisorModal.classList.remove('active');
+  });
+}
+
+if (advisorModal) {
+  advisorModal.addEventListener('click', (e) => {
+    if (e.target === advisorModal) {
+      advisorModal.classList.remove('active');
+    }
+  });
+}
+
+if (advisorForm) {
+  advisorForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('advisorName').value;
+    const email = document.getElementById('advisorEmail').value;
+    const phone = document.getElementById('advisorPhone').value;
+    const message = document.getElementById('advisorMessage').value;
+
+    advisorModal.classList.remove('active');
+    addBotMsg(`¡Gracias ${name}! Hemos recibido tu solicitud. Un asesor se comunicará contigo pronto a ${email}.`);
+
+    advisorForm.reset();
+    console.log('Advisor request:', { name, email, phone, message });
+  });
+}
+
+// Focus input on load
+if (inpEl) {
+  inpEl.focus();
 }
