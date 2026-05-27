@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import database as db
 import inspect
 from typing import Optional
+from urllib.parse import quote_plus
 
 # Plugins
 import info_plugin
@@ -312,6 +313,57 @@ def advisor_request():
             return jsonify({'error': 'Faltan campos obligatorios'}), 400
         request_id = db.create_advisor_request(name, email, phone, message)
         return jsonify({'success': True, 'id': request_id})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/advisor/connect', methods=['POST'])
+def advisor_connect():
+    """Solicita conexión inmediata con un asesor. Crea una solicitud y marca
+    su estado como 'live_requested'. Devuelve datos de contacto del asesor si
+    están configurados en variables de entorno.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        if current_user.is_authenticated:
+            name = getattr(current_user, 'username', 'Usuario')
+            email = getattr(current_user, 'email', '')
+            phone = data.get('phone') or None
+        else:
+            name = data.get('name') or data.get('full_name') or 'Usuario'
+            email = data.get('email') or ''
+            phone = data.get('phone') or None
+
+        message = data.get('message') or 'Solicita conexión inmediata con un asesor.'
+
+        req_id = db.create_advisor_request(name, email, phone, message)
+        db.update_advisor_request_status(req_id, 'live_requested')
+
+        contact = {}
+        advisor_chat = os.environ.get('ADVISOR_CHAT_URL')
+        advisor_phone = os.environ.get('ADVISOR_PHONE')
+        advisor_email = os.environ.get('ADVISOR_EMAIL')
+        advisor_whatsapp = os.environ.get('ADVISOR_WHATSAPP_NUMBER')
+
+        if advisor_chat:
+            contact['chat_url'] = advisor_chat
+        # If explicit WhatsApp number provided, build a wa.me link with prefilled text
+        if not advisor_chat and advisor_whatsapp:
+            # Normalize number to digits
+            import re
+            num = re.sub(r"\D", "", advisor_whatsapp)
+            prefill = f"Hola, solicité conexión (ID: {req_id}). Mi nombre: {name}."
+            wa_link = f"https://wa.me/{num}?text={quote_plus(prefill)}"
+            contact['chat_url'] = wa_link
+            # also provide phone for display
+            contact['phone'] = advisor_whatsapp
+
+        if advisor_phone and 'phone' not in contact:
+            contact['phone'] = advisor_phone
+        if advisor_email:
+            contact['email'] = advisor_email
+
+        return jsonify({'success': True, 'id': req_id, 'status': 'live_requested', 'contact': contact})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

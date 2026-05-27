@@ -228,6 +228,42 @@ async function submitModal() {
   }
 }
 
+// ── Conexión inmediata con asesor ─────────────────────────
+async function connectAdvisorNow() {
+  const name = document.getElementById('advisorName')?.value || '';
+  const email = document.getElementById('advisorEmail')?.value || '';
+  const phone = document.getElementById('advisorPhone')?.value || '';
+
+  showTyping();
+  try {
+    const response = await fetch('/api/advisor/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, phone, message: 'Solicita conexión inmediata' })
+    });
+
+    hideTyping();
+    if (!response.ok) throw new Error('No se pudo conectar con el servidor');
+    const data = await response.json();
+
+    if (data && data.contact) {
+      const c = data.contact;
+      let html = `<p>Conectando con un asesor ahora. Puedes usar estos canales:</p><div class="btn-row">`;
+      if (c.chat_url) html += `${linkBtn(c.chat_url, 'Abrir chat')}`;
+      if (c.phone) html += `${outlineBtn('tel:'+c.phone.replace(/\s+/g,''), 'Llamar al asesor')}`;
+      if (c.email) html += `${outlineBtn('mailto:'+c.email, 'Enviar correo')}`;
+      html += `</div><p>Si no contestan enseguida, hemos dejado tu solicitud en cola (ID ${data.id}).</p>`;
+      addBotMsg(html);
+      if (c.chat_url) window.open(c.chat_url, '_blank');
+    } else {
+      addBotMsg('Tu solicitud ha sido enviada. Un asesor te contactará lo antes posible.');
+    }
+  } catch (e) {
+    hideTyping();
+    addBotMsg('Hubo un error al intentar conectar con un asesor. Por favor intenta de nuevo más tarde.');
+  }
+}
+
 // Focus input on load
 if (inpEl) {
   inpEl.focus();
