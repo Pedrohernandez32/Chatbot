@@ -1,6 +1,9 @@
 flask>=2.3.0
 flask-cors>=4.0.0
-flask-login>=0.9.0
+flask-login>=0.6.3
 openai>=0.27.0
 python-dotenv>=1.0.0
 requests>=2.31.0
+chromadb>=0.4.0
+pypdf>=4.0.0
+sentence-transformers>=2.2.0

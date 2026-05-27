@@ -6,6 +6,8 @@ from typing import Callable, List, Optional
 
 from ai_plugin import register as register_ai_plugin
 from openai_plugin import register as register_openai_plugin
+from tool_plugin import register as register_tool_plugin
+from rag_plugin import register as register_rag_plugin
 
 Handler = Callable[[str], Optional[str]]
 
@@ -74,8 +76,10 @@ def main() -> None:
     args = parser.parse_args()
 
     bot = Chatbot("MiChatbot")
-    register_openai_plugin(bot)
+    register_tool_plugin(bot)
+    register_rag_plugin(bot)
     register_ai_plugin(bot)
+    register_openai_plugin(bot)
     bot.register_handler(faculty_handler)
     bot.register_handler(default_handler)
 
