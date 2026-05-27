@@ -57,8 +57,7 @@ def rag_handler(prompt: str) -> Optional[str]:
     Busca información relevante en la base de datos vectorial y genera una respuesta.
     """
     api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        return None # Requiere LLM para sintetizar la respuesta
+    no_api = not api_key or api_key.lower().startswith("tu_") or api_key.lower() in {"tu_api_key", "tu_api_key-aqui", "your_api_key_here"}
 
     try:
         collection = initialize_rag()
@@ -78,26 +77,42 @@ def rag_handler(prompt: str) -> Optional[str]:
 
     context = "\n---\n".join(results["documents"][0])
 
+    # Si no hay clave de OpenAI, devolvemos un fallback local (extracto de los documentos)
+    if no_api:
+        extract = context.strip()
+        if not extract:
+            return None
+        max_len = 800
+        if len(extract) > max_len:
+            extract = extract[:max_len].rsplit('\n', 1)[0] + "..."
+        return f"Información encontrada en documentos oficiales:\n\n{extract}\n\n(Respuesta basada en los documentos indexados.)"
+
     # 2. Augmentar el prompt y generar respuesta con OpenAI
-    client = OpenAI(api_key=api_key)
+    try:
+        client = OpenAI(api_key=api_key)
 
-    system_prompt = (
-        "Eres un asistente de la universidad. Utiliza la siguiente información la "
-        "cuya fuente es oficial para responder la pregunta del usuario. "
-        "Si la información no está en el contexto, di que no lo sabes y sugiere "
-        "contactar a secretaría. Mantén una respuesta concisa y amable.\n\n"
-        f"CONTEXTO:\n{context}"
-    )
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ]
-    )
-
-    return response.choices[0].message.content
+        system_prompt = (
+            "Eres un asistente de la universidad. Utiliza la siguiente información la "
+            "cuya fuente es oficial para responder la pregunta del usuario. "
+            "Si la información no está en el contexto, di que no lo sabes y sugiere "
+            "contactar a secretaría. Mantén una respuesta concisa y amable.\n\n"
+            f"CONTEXTO:\n{context}"
+        )
+        try:
+            response = client.chat.completions.create(
+                model=os.environ.get("OPENAI_MODEL", "gpt-4o"),
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"[RAG Error] OpenAI call failed: {e}")
+            return None
+    except Exception as e:
+        print(f"[RAG Error] Initialization failed: {e}")
+        return None
 
 def register(bot) -> None:
     """Registra el manejador RAG en el chatbot."""

@@ -103,6 +103,17 @@ def init_db():
         )
 
     conn.commit()
+    # Lightweight migration: ensure conversations table has `user_id` column
+    try:
+        c.execute("PRAGMA table_info(conversations)")
+        existing_cols = [r[1] for r in c.fetchall()]
+        if 'user_id' not in existing_cols:
+            c.execute("ALTER TABLE conversations ADD COLUMN user_id INTEGER")
+            conn.commit()
+    except Exception:
+        # If anything goes wrong with migration, continue; table may already match schema
+        pass
+
     conn.close()
 
 

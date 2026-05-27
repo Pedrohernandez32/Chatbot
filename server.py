@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, session
+from flask import Flask, request, jsonify, send_from_directory, session, Response, stream_with_context
 from flask_cors import CORS
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -14,6 +14,7 @@ from database import (
     get_all_learned_responses, delete_learned_response,
     get_user_by_email, get_user_by_id, create_user
 )
+from info_plugin import register as register_info_plugin
 from ai_plugin import register as register_ai_plugin
 from openai_plugin import register as register_openai_plugin
 from ollama_plugin import register as register_ollama_plugin
@@ -199,9 +200,11 @@ class Bot:
 
 
 bot = Bot()
-register_openai_plugin(bot)
-register_ollama_plugin(bot)
+# Register plugins: institutional info first, then FAQ, then local LLM, then cloud fallback
+register_info_plugin(bot)
 register_ai_plugin(bot)
+register_ollama_plugin(bot)
+register_openai_plugin(bot)
 
 
 @app.route('/')
@@ -226,20 +229,44 @@ def chat():
         user_id = current_user.id if current_user.is_authenticated else None
 
         # Process message and get response (with fallback)
-        response = "No tengo información específica sobre eso. ¿Puedes reformular tu pregunta? Puedo ayudarte con información sobre carreras, horarios, ubicación, contacto, becas e inscripciones."
-        
+        default_response = "No tengo información específica sobre eso. ¿Puedes reformular tu pregunta? Puedo ayudarte con información sobre carreras, horarios, ubicación, contacto, becas e inscripciones."
+
         try:
             bot_response = bot.process(message)
-            if bot_response:
-                response = bot_response
         except Exception as e:
-            # Log error but don't fail
             print(f"Bot error: {str(e)}")
+            bot_response = None
+
+        # If a plugin returned a streaming generator (e.g. Ollama), stream it as SSE
+        if bot_response and not isinstance(bot_response, (str, bytes)):
+            def generate():
+                full_text = ""
+                try:
+                    for chunk in bot_response:
+                        if not chunk:
+                            continue
+                        full_text += chunk
+                        yield f"data: {jsonify({'chunk': chunk}).get_data(as_text=True)}\n\n"
+                except Exception as e:
+                    yield f"data: {jsonify({'error': str(e)}).get_data(as_text=True)}\n\n"
+                finally:
+                    try:
+                        save_conversation(message, full_text, user_id=user_id)
+                    except Exception:
+                        pass
+                    yield f"data: {jsonify({'done': True}).get_data(as_text=True)}\n\n"
+
+            return Response(stream_with_context(generate()), mimetype='text/event-stream')
+
+        # Standard (non-stream) response handling
+        response = default_response
+        if bot_response:
+            response = bot_response
 
         # Save conversation with user_id to get real conv_id
         try:
             conv_id = save_conversation(message, response, user_id=user_id)
-        except:
+        except Exception:
             conv_id = None
 
         return jsonify({

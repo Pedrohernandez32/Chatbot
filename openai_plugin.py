@@ -40,7 +40,8 @@ def _trim_history() -> None:
 def openai_handler(prompt: str) -> Optional[str]:
     """Usar OpenAI para generar la respuesta si la clave está configurada."""
     api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key or api_key == "tu_api_key-aqui":
+    # Ignore placeholder keys or obvious dummy values
+    if not api_key or api_key.lower().startswith("tu_") or api_key.lower() in {"tu_api_key", "tu_api_key-aqui", "your_api_key_here"}:
         return None
 
     # Check learned responses FIRST - return immediately if found

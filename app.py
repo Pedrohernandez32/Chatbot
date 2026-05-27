@@ -6,13 +6,17 @@ from dotenv import load_dotenv
 import requests
 from werkzeug.security import generate_password_hash, check_password_hash
 import database as db
+import inspect
+from typing import Optional
 
 # Plugins
+import info_plugin
+import portal_plugin
 import ai_plugin
-import ollama_plugin
 import rag_plugin
-import tool_plugin
+import ollama_plugin
 import openai_plugin
+import tool_plugin
 
 load_dotenv()
 
@@ -63,18 +67,62 @@ class Bot:
 
         for handler in self.handlers:
             response = handler(augmented_prompt)
+            # If ai_plugin gives a generic hint message, treat as no-answer and continue
+            try:
+                mod_name = handler.__module__
+            except Exception:
+                mod_name = ""
+
             if response:
-                return response, True if "plugin" in handler.__module__ else False
+                if mod_name == 'ai_plugin' and isinstance(response, str) and response.startswith("Sobre la universidad puedo decirte"):
+                    # Not a specific answer; continue to next handler or fallback to LLMs
+                    response = None
+
+            if response:
+                return response, True if "plugin" in mod_name else False
+
+        # No plugin returned a concrete answer — attempt AI fallbacks (local Ollama, then OpenAI)
+        try:
+            # Prefer Ollama (may return a generator for streaming)
+            ollama_resp = None
+            try:
+                ollama_resp = ollama_plugin.ollama_handler(augmented_prompt)
+            except Exception:
+                ollama_resp = None
+
+            if ollama_resp:
+                return ollama_resp, True
+
+            # Next try OpenAI (synchronous string response)
+            try:
+                openai_resp = openai_plugin.openai_handler(augmented_prompt)
+            except Exception:
+                openai_resp = None
+
+            if openai_resp:
+                return openai_resp, True
+        except Exception:
+            pass
+
         return "Lo siento, no tengo información específica sobre eso. ¿Podrías preguntar de otra forma?", False
 
 bot = Bot()
 
 # Register Plugins in order of priority
-rag_plugin.register(bot)       # 1. Knowledge Base (Official docs)
-ai_plugin.register(bot)        # 2. Semantic FAQ
-ollama_plugin.register(bot)    # 3. Local LLM
-openai_plugin.register(bot)   # 4. Cloud LLM (Fallback)
-tool_plugin.register(bot)       # 5. Utilities
+# 1. Institutional info (from app.py SYSTEM_PROMPT)
+info_plugin.register(bot)
+# 1.5 Portal scraper (fetch official site)
+portal_plugin.register(bot)
+# 2. Semantic FAQ
+ai_plugin.register(bot)
+# 3. Knowledge Base (Official docs)
+rag_plugin.register(bot)
+# 4. Local LLM
+ollama_plugin.register(bot)
+# 5. Cloud LLM (Fallback)
+openai_plugin.register(bot)
+# 6. Utilities
+tool_plugin.register(bot)
 
 # Configuración
 SYSTEM_PROMPT = """
@@ -280,18 +328,23 @@ def chat():
         # The bot handle now returns either a string or a generator
         result = bot.handle(user_message, user_id=user_id)
         response_content, is_ai = result
+        print(f"DEBUG: response_content type: {type(response_content)}")
+        print(f"DEBUG: response_content value: {response_content}")
 
-        if isinstance(response_content, (list, tuple)) or hasattr(response_content, '__iter__') and not isinstance(response_content, (str, bytes)):
-            # It's a generator (streaming)
+        if not isinstance(response_content, (str, bytes)):
+            # It's a generator or other iterable (streaming)
             def generate():
                 full_response = ""
-                for chunk in response_content:
-                    full_response += chunk
-                    yield f"data: {jsonify({'chunk': chunk}).get_data(as_text=True)}\n\n"
-
-                # Save to DB after stream finishes
-                db.save_conversation(user_message, full_response, user_id=user_id)
-                yield f"data: {jsonify({'done': True}).get_data(as_text=True)}\n\n"
+                try:
+                    for chunk in response_content:
+                        full_response += chunk
+                        yield f"data: {jsonify({'chunk': chunk}).get_data(as_text=True)}\n\n"
+                except Exception as e:
+                    yield f"data: {jsonify({'error': str(e)}).get_data(as_text=True)}\n\n"
+                finally:
+                    # Save to DB after stream finishes
+                    db.save_conversation(user_message, full_response, user_id=user_id)
+                    yield f"data: {jsonify({'done': True}).get_data(as_text=True)}\n\n"
 
             return Response(stream_with_context(generate()), mimetype='text/event-stream')
         else:
@@ -303,4 +356,9 @@ def chat():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
+    # Ensure database schema / initial data
+    try:
+        db.init_db()
+    except Exception as e:
+        print('DB init error:', e)
     app.run(debug=True, port=5000)

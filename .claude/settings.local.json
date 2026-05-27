@@ -28,7 +28,15 @@
       "WebFetch(domain:www.udemedellin.edu.co)",
       "Bash(pkill -f \"python app.py\")",
       "Bash(python *)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(.venv\\\\Scripts\\\\python app.py)",
+      "Bash(.venv/Scripts/python app.py)",
+      "Bash(fuser -k 5000/tcp)",
+      "Bash(netstat -ano)",
+      "Bash(awk '{print $5}')",
+      "Bash(xargs -r taskkill /F /PID)",
+      "Bash(taskkill *)",
+      "Bash(powershell *)"
     ]
   }
 }
