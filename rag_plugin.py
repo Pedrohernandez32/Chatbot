@@ -21,21 +21,24 @@ def initialize_rag():
         embedding_function=embedding_fn
     )
 
-    # Verificar si ya hay datos para no re-indexar todo cada vez
     if collection.count() > 0:
         return collection
 
     print("[RAG] Indexando documentos desde la carpeta docs...")
     doc_paths = glob.glob(os.path.join(DOCS_DIR, "*.txt"))
 
-    # Para PDFs, necesitaríamos pypdf, pero empezaremos con .txt para estabilidad
-    # Se puede extender fácilmente a .pdf usando pypdf.
-
     for path in doc_paths:
         with open(path, "r", encoding="utf-8") as f:
             content = f.read()
-            # Chunking simple: dividir por párrafos
-            chunks = content.split("\n\n")
+
+            # Improved Chunking: Overlapping window to preserve context
+            chunk_size = 500
+            chunk_overlap = 100
+            chunks = []
+
+            for i in range(0, len(content), chunk_size - chunk_overlap):
+                chunk = content[i:i + chunk_size]
+                chunks.append(chunk)
 
             ids = [f"{os.path.basename(path)}_{i}" for i in range(len(chunks))]
             metadatas = [{"source": os.path.basename(path)} for _ in range(len(chunks))]

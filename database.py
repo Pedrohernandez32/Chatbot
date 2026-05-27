@@ -73,7 +73,18 @@ def init_db():
         )
     """)
 
-    # Precargar horarios de piscina (genéricos)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS advisor_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            phone TEXT,
+            message TEXT NOT NULL,
+            status TEXT DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     piscina_hours = [
         ("piscina", "lunes", "6:00 - 8:00 y 18:00 - 21:00", "Solo alumnos con matrícula vigente"),
         ("piscina", "martes", "6:00 - 8:00 y 18:00 - 21:00", "Solo alumnos con matrícula vigente"),
@@ -259,15 +270,46 @@ def save_conversation(question: str, answer: str, topic: Optional[str] = None, u
     return conv_id
 
 
-def get_unknown_questions(limit: int = 20) -> list[dict]:
-    """Preguntas marcadas para revisión (downvotes o needs_review=True)."""
+def get_user_history(user_id: int, limit: int = 10) -> list[dict]:
     conn = get_db()
     c = conn.cursor()
     c.execute(
-        "SELECT id, question, answer, topic, upvotes, downvotes, created_at FROM conversations "
-        "WHERE needs_review = TRUE OR downvotes > 0 ORDER BY downvotes DESC, created_at DESC LIMIT ?",
-        (limit,)
+        "SELECT question, answer FROM conversations WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
+        (user_id, limit)
     )
     rows = c.fetchall()
     conn.close()
+
+    history = []
+    for row in reversed(rows):
+        history.append({"role": "user", "content": row["question"]})
+        history.append({"role": "assistant", "content": row["answer"]})
+    return history
+
+
+def create_advisor_request(name: str, email: str, phone: Optional[str], message: str) -> int:
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO advisor_requests (name, email, phone, message) VALUES (?, ?, ?, ?)",
+        (name, email, phone, message)
+    )
+    request_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    return request_id
+
+def get_advisor_requests() -> list[dict]:
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT * FROM advisor_requests ORDER BY created_at DESC")
+    rows = c.fetchall()
+    conn.close()
     return [dict(row) for row in rows]
+
+def update_advisor_request_status(request_id: int, status: str) -> None:
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("UPDATE advisor_requests SET status = ? WHERE id = ?", (status, request_id))
+    conn.commit()
+    conn.close()

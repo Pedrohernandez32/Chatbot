@@ -4,6 +4,9 @@ flask-login>=0.6.3
 openai>=0.27.0
 python-dotenv>=1.0.0
 requests>=2.31.0
+<<<<<<< HEAD
 chromadb>=0.4.0
 pypdf>=4.0.0
 sentence-transformers>=2.2.0
+=======
+>>>>>>> 4cc705d1f97e53aa97e002d954675d4bfa6c85a0

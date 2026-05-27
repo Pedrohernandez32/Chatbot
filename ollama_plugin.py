@@ -48,9 +48,9 @@ def ollama_check() -> bool:
         return False
 
 
-def ollama_handler(prompt: str) -> Optional[str]:
-    """Usar Ollama para generar la respuesta."""
-    # Check learned responses FIRST - return immediately if found
+def ollama_handler(prompt: str) -> Optional[str | Generator]:
+    """Usar Ollama para generar la respuesta. Soporta streaming si se configura en la petición."""
+    # Check learned responses FIRST
     learned = get_learned_response(prompt.lower())
     if learned:
         increment_learned_usage(prompt.lower())
@@ -60,41 +60,35 @@ def ollama_handler(prompt: str) -> Optional[str]:
         return None
 
     model = os.environ.get("OLLAMA_MODEL", DEFAULT_MODEL)
-
     user_message = {"role": "user", "content": prompt}
-    messages = conversation_history + [user_message]
 
     try:
-        response = requests.post(
-            OLLAMA_URL,
-            json={
-                "model": model,
-                "prompt": prompt,
-                "system": SYSTEM_PROMPT,
-                "stream": False,
-                "options": {
-                    "temperature": 0.7,
-                    "num_predict": 250,
-                }
-            },
-            timeout=60,
-        )
+        # We use a generator for streaming
+        def generate():
+            response = requests.post(
+                OLLAMA_URL,
+                json={
+                    "model": model,
+                    "prompt": prompt,
+                    "system": SYSTEM_PROMPT,
+                    "stream": True,
+                    "options": {
+                        "temperature": 0.7,
+                        "num_predict": 250,
+                    }
+                },
+                timeout=60,
+                stream=True
+            )
+            for line in response.iter_lines():
+                if line:
+                    import json
+                    chunk = json.loads(line.decode('utf-8'))
+                    yield chunk.get("response", "")
 
-        if response.status_code == 200:
-            result = response.json()
-            answer = result.get("response", "").strip()
-            conversation_history.append(user_message)
-            conversation_history.append({"role": "assistant", "content": answer})
-            _trim_history()
-
-            topic = _detect_topic(prompt)
-            save_conversation(prompt, answer, topic)
-            return answer
-        else:
-            print(f"Ollama error: {response.status_code}")
-            return None
+        return generate()
     except Exception as e:
-        print(f"Ollama error: {e}")
+        print(f"Ollama stream error: {e}")
         return None
 
 
