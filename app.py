@@ -440,6 +440,48 @@ def chat():
         logging.error(f"Chat error: {str(e)}", exc_info=True)
         return jsonify({'error': 'Error procesando tu mensaje. Intenta de nuevo.'}), 500
 
+
+@app.route('/api/response/expanded/<category>', methods=['GET'])
+def get_expanded_response(category):
+    expanded = db.get_expanded_response(category)
+    if expanded:
+        return jsonify({'expanded': expanded})
+    return jsonify({'error': 'No hay información expandida disponible'}), 404
+
+
+@app.route('/api/response/feedback', methods=['POST'])
+def submit_feedback():
+    try:
+        data = request.get_json() or {}
+        conversation_id = data.get('conversation_id')
+        response_text = data.get('response_text', '').strip()
+        helpful = data.get('helpful')
+        feedback_text = (data.get('feedback', '') or '').strip()[:500]
+        user_id = current_user.id if current_user.is_authenticated else None
+
+        if not response_text or helpful is None:
+            return jsonify({'error': 'Datos incompletos'}), 400
+
+        feedback_id = db.save_response_feedback(
+            conversation_id, response_text, helpful, feedback_text, user_id
+        )
+        logger.info(f"Feedback #{feedback_id}: helpful={helpful}, category={response_text[:50]}")
+        return jsonify({'success': True, 'id': feedback_id})
+
+    except Exception as e:
+        logger.error(f"Feedback error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error guardando feedback'}), 500
+
+
+@app.route('/api/admin/feedback-stats', methods=['GET'])
+@login_required
+def feedback_stats():
+    if not current_user.is_admin:
+        return jsonify({'error': 'No autorizado'}), 403
+    stats = db.get_feedback_stats(limit=20)
+    return jsonify(stats)
+
+
 if __name__ == '__main__':
     try:
         db.init_db()

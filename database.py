@@ -85,6 +85,29 @@ def init_db():
         )
     """)
 
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS response_feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            conversation_id INTEGER,
+            user_id INTEGER,
+            response_text TEXT,
+            helpful BOOLEAN,
+            feedback_text TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (conversation_id) REFERENCES conversations(id),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS expanded_responses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category TEXT UNIQUE NOT NULL,
+            short_response TEXT NOT NULL,
+            expanded_response TEXT NOT NULL
+        )
+    """)
+
     piscina_hours = [
         ("piscina", "lunes", "6:00 - 8:00 y 18:00 - 21:00", "Solo alumnos con matrícula vigente"),
         ("piscina", "martes", "6:00 - 8:00 y 18:00 - 21:00", "Solo alumnos con matrícula vigente"),
@@ -326,3 +349,48 @@ def update_advisor_request_status(request_id: int, status: str) -> None:
     c.execute("UPDATE advisor_requests SET status = ? WHERE id = ?", (status, request_id))
     conn.commit()
     conn.close()
+
+
+def save_response_feedback(conversation_id: int, response_text: str, helpful: bool, feedback_text: Optional[str] = None, user_id: Optional[int] = None) -> int:
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO response_feedback (conversation_id, user_id, response_text, helpful, feedback_text) VALUES (?, ?, ?, ?, ?)",
+        (conversation_id, user_id, response_text, feedback_text)
+    )
+    conn.commit()
+    feedback_id = c.lastrowid
+    conn.close()
+    return feedback_id
+
+
+def get_expanded_response(category: str) -> Optional[str]:
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT expanded_response FROM expanded_responses WHERE category = ?", (category,))
+    row = c.fetchone()
+    conn.close()
+    return row["expanded_response"] if row else None
+
+
+def save_expanded_response(category: str, short: str, expanded: str) -> None:
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "INSERT OR REPLACE INTO expanded_responses (category, short_response, expanded_response) VALUES (?, ?, ?)",
+        (category, short, expanded)
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_feedback_stats(limit: int = 10) -> list:
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "SELECT response_text, helpful, COUNT(*) as count FROM response_feedback GROUP BY response_text, helpful ORDER BY count DESC LIMIT ?",
+        (limit,)
+    )
+    rows = c.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]

@@ -53,7 +53,7 @@ function addUserMsg(text) {
   scrollToBottom();
 }
 
-function addBotMsg(html) {
+function addBotMsg(html, hasMore=false, category=null) {
   const div = document.createElement('div');
   div.className = 'msg';
   const bubble = document.createElement('div');
@@ -61,8 +61,78 @@ function addBotMsg(html) {
   bubble.innerHTML = DOMPurify.sanitize(html);
   div.innerHTML = botAvatar();
   div.appendChild(bubble);
+
+  // Add action buttons (feedback + see more)
+  const actions = document.createElement('div');
+  actions.className = 'msg-actions';
+
+  const helpful = document.createElement('button');
+  helpful.className = 'btn-small btn-helpful';
+  helpful.innerHTML = '👍 Útil';
+  helpful.onclick = () => sendFeedback(true, html.substring(0, 100), helpful);
+
+  const notHelpful = document.createElement('button');
+  notHelpful.className = 'btn-small btn-not-helpful';
+  notHelpful.innerHTML = '👎 No útil';
+  notHelpful.onclick = () => sendFeedback(false, html.substring(0, 100), notHelpful);
+
+  actions.appendChild(helpful);
+  actions.appendChild(notHelpful);
+
+  if (hasMore && category) {
+    const seeMore = document.createElement('button');
+    seeMore.className = 'btn-small btn-see-more';
+    seeMore.innerHTML = '📖 Ver más';
+    seeMore.onclick = () => showExpandedResponse(category);
+    actions.appendChild(seeMore);
+  }
+
+  div.appendChild(actions);
   msgsEl.appendChild(div);
   scrollToBottom();
+}
+
+async function sendFeedback(helpful, responseText, button) {
+  try {
+    const res = await fetch('/api/response/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        response_text: responseText,
+        helpful: helpful,
+        feedback: ''
+      })
+    });
+
+    if (res.ok) {
+      button.disabled = true;
+      button.style.opacity = '0.5';
+      button.textContent = helpful ? '✅ Gracias' : '❌ Noted';
+    }
+  } catch (e) {
+    console.error('Feedback error:', e);
+  }
+}
+
+async function showExpandedResponse(category) {
+  try {
+    const res = await fetch(`/api/response/expanded/${category}`);
+    const data = await res.json();
+
+    if (data.expanded) {
+      const modal = document.createElement('div');
+      modal.className = 'expanded-modal';
+      modal.innerHTML = `
+        <div class="expanded-content">
+          <button class="close-expanded" onclick="this.parentElement.parentElement.remove()">✕</button>
+          <div class="expanded-text">${DOMPurify.sanitize(marked.parse(data.expanded))}</div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+  } catch (e) {
+    console.error('Error loading expanded response:', e);
+  }
 }
 
 function showTyping() {
@@ -174,7 +244,16 @@ async function sendMessage(text) {
         throw new Error(data.error);
       }
 
-      addBotMsg(marked.parse(data.response));
+      try {
+        const structuredData = JSON.parse(data.response);
+        if (structuredData.text && structuredData.category) {
+          addBotMsg(marked.parse(structuredData.text), structuredData.has_more, structuredData.category);
+        } else {
+          addBotMsg(marked.parse(data.response));
+        }
+      } catch {
+        addBotMsg(marked.parse(data.response));
+      }
     }
   } catch (error) {
     hideTyping();
