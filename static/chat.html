@@ -480,6 +480,49 @@
       line-height: 1.4;
     }
 
+    /* CAMPUS GALLERY */
+    .campus-gallery {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .campus-image {
+      position: relative;
+      height: 120px;
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent) 100%);
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .campus-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .campus-image-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+      padding: 8px;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .campus-image:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-md);
+    }
+
     /* RESPONSIVE */
     @media (max-width: 768px) {
       .suggestions-sidebar {
@@ -558,9 +601,9 @@
       <div class="quick-actions" id="quickActions">
         <button class="quick-action" onclick="sendMessage('¿Cuál es el horario?')"><i class="fas fa-clock"></i> Horarios</button>
         <button class="quick-action" onclick="sendMessage('¿Dónde queda?')"><i class="fas fa-map-pin"></i> Ubicación</button>
+        <button class="quick-action" onclick="sendMessage('Cuéntame del campus')"><i class="fas fa-building"></i> Campus</button>
         <button class="quick-action" onclick="sendMessage('Carreras disponibles')"><i class="fas fa-graduation-cap"></i> Carreras</button>
         <button class="quick-action" onclick="sendMessage('¿Cómo me inscribo?')"><i class="fas fa-pen"></i> Inscripción</button>
-        <button class="quick-action" onclick="sendMessage('Información de becas')"><i class="fas fa-piggy-bank"></i> Becas</button>
       </div>
 
       <!-- MESSAGES AREA -->
@@ -569,15 +612,16 @@
           <div class="avatar"><i class="fas fa-robot"></i></div>
           <div class="message-content">
             <div class="message-bubble bot">
-              <p><i class="fas fa-hand"></i> ¡Hola! Soy tu asistente virtual de la <strong>Universidad de Medellín</strong>.</p>
+              <p><i class="fas fa-hand"></i> ¡Hola! Soy tu asistente virtual de la <strong>Universidad de Medellín</strong>. 🎓</p>
+              <p>Una institución con 5.6 hectáreas de infraestructura moderna, ubicada en Belén, Medellín.</p>
               <p>Estoy aquí para resolver todas tus dudas sobre:</p>
               <ul>
+                <li><i class="fas fa-building"></i> Campus e instalaciones</li>
                 <li><i class="fas fa-phone"></i> Contactos y ubicación</li>
                 <li><i class="fas fa-clock"></i> Horarios</li>
                 <li><i class="fas fa-graduation-cap"></i> Carreras académicas</li>
                 <li><i class="fas fa-piggy-bank"></i> Becas y financiamiento</li>
                 <li><i class="fas fa-pen"></i> Proceso de inscripción</li>
-                <li><i class="fas fa-headset"></i> Conectar con un asesor</li>
               </ul>
               <p>¿En qué puedo ayudarte hoy?</p>
             </div>
@@ -614,6 +658,12 @@
       </div>
       <div class="suggestion-card" onclick="sendMessage('¿Cuáles son los contactos?')">
         <p><i class="fas fa-phone" style="margin-right: 6px;"></i>Contactos</p>
+      </div>
+      <div class="suggestion-card" onclick="sendMessage('Cuéntame del campus')">
+        <p><i class="fas fa-building" style="margin-right: 6px;"></i>Campus</p>
+      </div>
+      <div class="suggestion-card" onclick="sendMessage('¿Qué instalaciones tienen?')">
+        <p><i class="fas fa-dumbbell" style="margin-right: 6px;"></i>Instalaciones</p>
       </div>
     </div>
   </div>
@@ -664,6 +714,27 @@
     if (typing) typing.remove();
   }
 
+  function showCampusGallery() {
+    const campusImages = [
+      { url: 'https://images.unsplash.com/photo-1427427494494-07fc41aa27ca?w=500&h=300&fit=crop', label: 'Aulas Modernas' },
+      { url: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=500&h=300&fit=crop', label: 'Biblioteca' },
+      { url: 'https://images.unsplash.com/photo-1541339907198-e7682147d192?w=500&h=300&fit=crop', label: 'Laboratorios' },
+      { url: 'https://images.unsplash.com/photo-1532496122399-5d06a7360e47?w=500&h=300&fit=crop', label: 'Deportes' }
+    ];
+
+    let html = '<div class="campus-gallery">';
+    campusImages.forEach(img => {
+      html += `
+        <div class="campus-image">
+          <img src="${img.url}" alt="${img.label}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22150%22><rect fill=%22%23E53E3E%22 width=%22200%22 height=%22150%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22white%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2214%22>${img.label}</text></svg>'">
+          <div class="campus-image-overlay">${img.label}</div>
+        </div>
+      `;
+    });
+    html += '</div>';
+    return html;
+  }
+
   async function sendMessage(msg = null) {
     const text = msg || inpEl.value.trim();
     if (!text) return;
@@ -685,7 +756,14 @@
       if (data.response) {
         try {
           const parsed = JSON.parse(data.response);
-          addMessage(marked.parse(parsed.text || data.response));
+          let responseText = marked.parse(parsed.text || data.response);
+
+          // Agregar galería de campus si pregunta sobre campus
+          if (text.toLowerCase().includes('campus') || text.toLowerCase().includes('instalacion')) {
+            responseText += showCampusGallery();
+          }
+
+          addMessage(responseText);
         } catch {
           addMessage(marked.parse(data.response));
         }

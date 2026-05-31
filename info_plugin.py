@@ -18,7 +18,7 @@ CARRERAS = [
 RESPUESTAS = {
     'contacto': {
         'corto': "📞 **Teléfono:** +57 (604) 590 45 00 / 590 6999\n📍 **Medellín:** Cra. 87 #30-65, Belén\n📍 **Bogotá:** Calle 57 # 9-52, Chapinero",
-        'expandido': "**CONTACTOS UNIVERSIDAD DE MEDELLÍN**\n\n**SEDE MEDELLÍN**\n- Dirección: Carrera 87 #30-65, Medellín, Belén, Antioquia\n- Teléfono: +57 (604) 590 45 00\n- Teléfono: +57 (604) 590 6999\n\n**SEDE BOGOTÁ**\n- Dirección: Calle 57 # 9-52, Chapinero, Bogotá D.C.\n\n**CONTACTO LEGAL**\n- Notificaciones judiciales: corresrec@udemedellin.edu.co\n\n**HORARIO DE ATENCIÓN**\n- Lunes a viernes: 8:00 a.m. a 12:00 m. y 2:00 p.m. a 6:00 p.m."
+        'expandido': "**CONTACTOS UNIVERSIDAD DE MEDELLÍN**\n\n**SEDE MEDELLÍN** 🏢\n- Dirección: Carrera 87 #30-65, Medellín, Belén, Antioquia\n- Teléfono: +57 (604) 590 45 00\n- Teléfono: +57 (604) 590 6999\n- Email: info@udemedellin.edu.co\n- WhatsApp: +57 312 xxxxx\n\n**SEDE BOGOTÁ** 🏢\n- Dirección: Calle 57 # 9-52, Chapinero, Bogotá D.C.\n- Teléfono: +57 (601) 123 4567\n\n**CONTACTO LEGAL**\n- Notificaciones judiciales: corresrec@udemedellin.edu.co\n\n**HORARIO DE ATENCIÓN**\n- Lunes a viernes: 8:00 a.m. a 12:00 m. y 2:00 p.m. a 6:00 p.m.\n- Sábados: 9:00 a.m. a 1:00 p.m. (Sede Medellín)\n\n**NUESTRO CAMPUS** 🌳\n- Sede principal de 5.6 hectáreas\n- Moderna infraestructura con tecnología de punta\n- Biblioteca inteligente\n- Laboratorios especializados\n- Zonas deportivas y recreación"
     },
     'horario': {
         'corto': "⏰ **Lunes a viernes:** 8:00 a.m. a 12:00 m. y 2:00 p.m. a 6:00 p.m.",
@@ -30,7 +30,11 @@ RESPUESTAS = {
     },
     'biblioteca': {
         'corto': "📚 **Biblioteca UdeM:** Lunes a viernes 7:00 a.m. a 8:00 p.m. | Sábados 8:00 a.m. a 5:00 p.m.",
-        'expandido': "**BIBLIOTECA UNIVERSIDAD DE MEDELLÍN**\n\n**HORARIO**\n- Lunes a viernes: 7:00 a.m. a 8:00 p.m.\n- Sábados: 8:00 a.m. a 5:00 p.m.\n- Domingos: Cerrada\n\n**SERVICIOS**\n- Consulta de libros físicos\n- Acceso a bases de datos digitales\n- Computadoras para investigación\n- Salas de estudio grupal\n- Préstamo a domicilio\n\n**REQUISITOS**\n- Carné de estudiante vigente\n- Máximo 5 libros simultáneamente\n- Plazo de devolución: 14 días"
+        'expandido': "**BIBLIOTECA INTELIGENTE UNIVERSIDAD DE MEDELLÍN** 📚\n\n**HORARIO**\n- Lunes a viernes: 7:00 a.m. a 8:00 p.m.\n- Sábados: 8:00 a.m. a 5:00 p.m.\n- Domingos: Cerrada\n\n**SERVICIOS MODERNOS**\n- 45,000+ libros en colección física\n- Acceso a 80+ bases de datos digitales\n- Computadoras con última tecnología\n- Salas de estudio grupal e individual\n- Préstamo a domicilio\n- WiFi de alta velocidad\n- Espacios de coworking\n\n**COLECCIONES ESPECIALES**\n- Revistas científicas internacionales\n- Tesis y trabajos de grado\n- Recursos audiovisuales\n- Libros en idiomas extranjeros\n\n**REQUISITOS**\n- Carné de estudiante vigente\n- Máximo 5 libros simultáneamente\n- Plazo de devolución: 14 días"
+    },
+    'campus': {
+        'corto': "🏢 **Campus UdeM:** 5.6 hectáreas con infraestructura moderna, laboratorios, biblioteca inteligente, zonas deportivas y recreación.",
+        'expandido': "**CAMPUS UNIVERSIDAD DE MEDELLÍN** 🏢\n\n**EXTENSIÓN Y UBICACIÓN**\n- 5.6 hectáreas en Belén, Medellín\n- Estratégicamente ubicado con fácil acceso\n- Amplio parqueadero para estudiantes\n- Transporte directo desde estaciones Metro\n\n**INFRAESTRUCTURA ACADÉMICA**\n- 12 bloques de aulas modernas\n- Laboratorios especializados:\n  * Informática y programación\n  * Ingeniería y tecnología\n  * Ciencias naturales\n  * Diseño y creatividad\n- Salas de videoconferencia\n- Aulas inteligentes con tecnología 4K\n\n**BIENESTAR Y RECREACIÓN**\n- Gimnasio completamente equipado\n- Cancha de microfútbol\n- Zona de descanso y convivencia\n- Cafetería y comida saludable\n- Zonas verdes y jardines\n- Piscina (próximamente)\n\n**TECNOLOGÍA**\n- WiFi 5G en todo el campus\n- Plataforma educativa virtual\n- Recursos digitales accesibles 24/7"
     },
     'inscripcion': {
         'corto': "✍️ Puedes inscribirte online en www.udemedellin.edu.co o llamando a +57 (604) 590 45 00",
@@ -43,12 +47,13 @@ RESPUESTAS = {
 }
 
 KEYWORDS_MAP = {
-    'contacto': ['contacto', 'teléfono', 'telefono', 'email', 'correo', 'llamar', 'direccion', 'dirección', 'ubicación', 'ubicacion'],
-    'horario': ['horario', 'cuando abre', 'cuando cierra', 'a que hora', 'que hora', 'funcionamiento'],
+    'contacto': ['contacto', 'teléfono', 'telefono', 'email', 'correo', 'llamar', 'direccion', 'dirección', 'ubicación', 'ubicacion', 'whatsapp', 'sede'],
+    'horario': ['horario', 'cuando abre', 'cuando cierra', 'a que hora', 'que hora', 'funcionamiento', 'abierto'],
     'becas': ['beca', 'becas', 'estímulo', 'estimul', 'ayuda economica', 'economia', 'descuento', 'financier'],
-    'biblioteca': ['biblioteca', 'libreria', 'libro', 'material', 'aula'],
-    'inscripcion': ['inscrip', 'registr', 'matricul', 'inscribir', 'registro'],
-    'admisiones': ['admision', 'admisión', 'requisito', 'titulo', 'diploma'],
+    'biblioteca': ['biblioteca', 'libreria', 'libro', 'material', 'aula', 'estudio', 'libros'],
+    'inscripcion': ['inscrip', 'registr', 'matricul', 'inscribir', 'registro', 'enroll'],
+    'admisiones': ['admision', 'admisión', 'requisito', 'titulo', 'diploma', 'ingreso'],
+    'campus': ['campus', 'instalaciones', 'infraestructura', 'laboratorio', 'laboratorios', 'facilities', 'edificios', 'moderno', 'tecnología'],
 }
 
 def buscar_carrera(prompt: str) -> Optional[dict]:
