@@ -5,116 +5,69 @@ import unicodedata
 from typing import Optional
 
 FAQ = {
-    "horario": "La universidad atiende de lunes a viernes de 9 a 18 hs.",
-    "ubicación": "La universidad se encuentra en Cra. 87 #30-65, Medellín, Belén, Medellín, Antioquia.",
-    "carrera": "Ofrecemos Ingeniería, Administración y Psicología.",
-    "inscripcion": "La inscripción para el próximo cuatrimestre comienza en marzo.",
-    "contacto": "Puedes escribir a info@udem.edu.co o llamar al (011) 1234-5678.",
-    "titulo": "El título que entregamos es de grado universitario.",
-    "aulas": "Las clases se dictan en el edificio principal y en el anexo de Ciencias Sociales.",
-    "biblioteca": "La biblioteca abre de lunes a viernes de 8 a 20 hs y sábados de 9 a 14 hs.",
-    "piscina": "La piscina está disponible de lunes a viernes de 6:00 a 8:00 y de 18:00 a 21:00. Los sábados de 8:00 a 12:00. Domingos y festivos permanece cerrada. Solo alumnos con matrícula vigente pueden usar la piscina.",
-    "becas": "Las becas y ayudas económicas se gestionan en Secretaría Estudiantil.",
-    "profesores": "Los datos de los profesores se publican en la plataforma académica y el sitio web de la universidad.",
-    "materias": "Las materias disponibles están en el plan de estudios y en la oferta académica del cuatrimestre.",
-    "admision": "La admisión se realiza con un examen de ingreso; consulta fechas y requisitos en el sitio oficial.",
+    "horario": "⏰ Lunes a viernes de 8:00 a.m. a 12:00 m. y de 2:00 p.m. a 6:00 p.m.",
+    "ubicación": "📍 Sede principal: Cra. 87 #30-65, Medellín, Belén | Sede Bogotá: Calle 57 # 9-52, Chapinero",
+    "carrera": "Ofrecemos 20+ carreras: Ingeniería, Administración, Derecho, Psicología, Diseño, Comunicación y más.",
+    "inscripcion": "✍️ Inscripción online en www.udemedellin.edu.co o llama a +57 (604) 590 45 00",
+    "contacto": "📞 +57 (604) 590 45 00 / 590 6999 | 📧 info@udemedellin.edu.co",
+    "titulo": "Ofrecemos títulos de grado universitario acreditados.",
+    "aulas": "Contamos con aulas modernas en campus Medellín y Bogotá.",
+    "biblioteca": "📚 Lunes a viernes 7:00 a.m. a 8:00 p.m. | Sábados 8:00 a.m. a 5:00 p.m.",
+    "piscina": "🏊 Lunes-viernes 6:00-8:00 a.m. y 6:00-9:00 p.m. | Sábados 8:00 a.m.-12:00 m. Solo con matrícula vigente.",
+    "becas": "💰 Becas sociales, de honor, excelencia y estímulos para monitorías, deportes y cultura.",
+    "profesores": "Docentes especializados disponibles en horarios de asesoría académica.",
+    "materias": "Plan de estudios flexible con materias de especialización según el programa.",
+    "admision": "📋 Requerimientos: diploma de bachiller + prueba de admisión. Consulta carreras específicas.",
 }
 
 SYNONYMS = {
     "horario": [
-        "horario",
-        "cuando abre",
-        "cuando cierra",
-        "a que hora",
-        "que hora",
-        "jornada",
-        "horas",
+        "horario", "cuando abre", "cuando cierra", "a que hora", "que hora",
+        "jornada", "horas", "en que horario", "funcionamiento", "atienden"
     ],
     "ubicación": [
-        "donde",
-        "ubicacion",
-        "direccion",
-        "localizacion",
-        "sitio",
-        "direccion exacta",
+        "donde", "ubicacion", "ubicación", "direccion", "dirección", "localizacion",
+        "sitio", "direccion exacta", "donde queda", "sede"
     ],
     "carrera": [
-        "carrera",
-        "programa",
-        "oferta academica",
-        "especialidad",
-        "estudio",
-        "grado",
+        "carrera", "carreras", "programa", "oferta academica", "especialidad",
+        "estudio", "grado", "ingenieria", "derecho", "psicologia", "administracion"
     ],
     "inscripcion": [
-        "inscripcion",
-        "matricula",
-        "registro",
-        "inscribirme",
-        "preinscripcion",
-        "inscribirse",
-        "plazo",
+        "inscripcion", "inscripción", "matricula", "registro", "inscribirme",
+        "preinscripcion", "inscribirse", "plazo", "como inscribo", "como me inscribo"
     ],
     "contacto": [
-        "contacto",
-        "telefono",
-        "email",
-        "correo",
-        "llamar",
-        "telefonos",
+        "contacto", "telefono", "teléfono", "email", "correo", "llamar",
+        "telefonos", "whatsapp", "como contacto"
     ],
     "titulo": [
-        "titulo",
-        "grado",
-        "certificado",
-        "diploma",
+        "titulo", "grado", "certificado", "diploma", "titulo que dan"
     ],
     "aulas": [
-        "aula",
-        "salon",
-        "edificio",
-        "clase",
-        "sala",
+        "aula", "salon", "edificio", "clase", "sala", "donde toman clases"
     ],
     "biblioteca": [
-        "biblioteca",
-        "libros",
-        "sala de lectura",
-        "prestamo",
+        "biblioteca", "libros", "sala de lectura", "prestamo", "horario biblioteca"
     ],
     "piscina": [
-        "piscina",
-        "natacion",
-        "nadar",
-        "natatorio",
-        "piscina universidad",
+        "piscina", "natacion", "nadar", "natatorio", "piscina universidad",
+        "cuando abre la piscina"
     ],
     "becas": [
-        "becas",
-        "ayuda economica",
-        "subsidio",
-        "financiacion",
+        "becas", "beca", "ayuda economica", "subsidio", "financiacion",
+        "descuento", "como saco beca"
     ],
     "profesores": [
-        "profesores",
-        "docentes",
-        "catedraticos",
-        "maestros",
-        "jefes de catedra",
+        "profesores", "docentes", "catedraticos", "maestros", "jefes de catedra",
+        "profesores disponibles"
     ],
     "materias": [
-        "materias",
-        "asignaturas",
-        "curso",
-        "cursos",
-        "clases",
+        "materias", "asignaturas", "curso", "cursos", "clases", "que materias dan"
     ],
     "admision": [
-        "admision",
-        "ingreso",
-        "examen",
-        "prueba",
-        "requisitos",
+        "admision", "admisión", "ingreso", "examen", "prueba", "requisitos",
+        "como entro", "como puedo estudiar"
     ],
 }
 
