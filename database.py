@@ -125,6 +125,28 @@ def init_db():
             (facility, day_type, hours, extra),
         )
 
+    # Populate expanded responses (from info_plugin)
+    expanded_data = [
+        ("contacto", "📞 **Teléfono:** +57 (604) 590 45 00 / 590 6999\n📍 **Medellín:** Cra. 87 #30-65, Belén\n📍 **Bogotá:** Calle 57 # 9-52, Chapinero",
+         "**CONTACTOS UNIVERSIDAD DE MEDELLÍN**\n\n**SEDE MEDELLÍN**\n- Dirección: Carrera 87 #30-65, Medellín, Belén, Antioquia\n- Teléfono: +57 (604) 590 45 00\n- Teléfono: +57 (604) 590 6999\n\n**SEDE BOGOTÁ**\n- Dirección: Calle 57 # 9-52, Chapinero, Bogotá D.C.\n\n**CONTACTO LEGAL**\n- Notificaciones judiciales: corresrec@udemedellin.edu.co"),
+        ("horario", "⏰ **Lunes a viernes:** 8:00 a.m. a 12:00 m. y 2:00 p.m. a 6:00 p.m.",
+         "**HORARIO DE ATENCIÓN UNIVERSIDAD**\n\n**HORARIO GENERAL**\n- Lunes a viernes: 8:00 a.m. a 12:00 m. y 2:00 p.m. a 6:00 p.m.\n\n**BIBLIOTECA**\n- Lunes a viernes: 7:00 a.m. a 8:00 p.m.\n- Sábados: 8:00 a.m. a 5:00 p.m.\n\n**PISCINA**\n- Lunes-viernes: 6:00-8:00 a.m. y 6:00-9:00 p.m.\n- Sábados: 8:00 a.m. a 12:00 m."),
+        ("becas", "💰 Tenemos becas sociales, de honor, excelencia y estímulos para monitorías, deportes y cultura.",
+         "**BECAS Y ESTÍMULOS ECONÓMICOS**\n\n**BECAS**\n- Beca Social (necesidad económica)\n- Beca de Honor (excelencia académica)\n- Beca de Excelencia (desempeño sobresaliente)\n\n**ESTÍMULOS**\n- Monitorías Académicas\n- Actividades Deportivas\n- Actividades Culturales y Artísticas"),
+        ("biblioteca", "📚 **Biblioteca UdeM:** Lunes a viernes 7:00 a.m. a 8:00 p.m. | Sábados 8:00 a.m. a 5:00 p.m.",
+         "**BIBLIOTECA UNIVERSIDAD DE MEDELLÍN**\n\n**HORARIO**\n- Lunes a viernes: 7:00 a.m. a 8:00 p.m.\n- Sábados: 8:00 a.m. a 5:00 p.m.\n\n**SERVICIOS**\n- Consulta de libros físicos\n- Acceso a bases de datos digitales\n- Computadoras para investigación"),
+        ("inscripcion", "✍️ Puedes inscribirte online en www.udemedellin.edu.co o llamando a +57 (604) 590 45 00",
+         "**PROCESO DE INSCRIPCIÓN**\n\n**OPCIÓN 1: ONLINE**\n- Ingresa a www.udemedellin.edu.co\n- Selecciona tu carrera y completa el formulario\n\n**OPCIÓN 2: PRESENCIAL**\n- Visita nuestras sedes\n- Horario: Lunes a viernes 8:00 a.m. a 12:00 m. y 2:00-6:00 p.m."),
+        ("admisiones", "📋 Requerimos diploma de bachiller y prueba de admisión.",
+         "**REQUISITOS DE ADMISIÓN**\n\n**REQUISITOS GENERALES**\n- Diploma de Bachiller acreditado\n- Cédula de Ciudadanía o Pasaporte\n- Prueba de Admisión\n\n**DOCUMENTOS A PRESENTAR**\n- Fotocopia del diploma de bachiller\n- Fotocopia del documento de identidad\n- 2 fotos 3x4 a color"),
+    ]
+
+    for category, short, expanded in expanded_data:
+        c.execute(
+            "INSERT OR REPLACE INTO expanded_responses (category, short_response, expanded_response) VALUES (?, ?, ?)",
+            (category, short, expanded),
+        )
+
     conn.commit()
     # Lightweight migration: ensure conversations table has `user_id` column
     try:
