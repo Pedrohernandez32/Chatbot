@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UdeM Chatbot - Asistente Virtual Inteligente</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="landing-page">
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-container">
+    <div class="navbar-brand">
+      <img src="https://www.udemedellin.edu.co/wp-content/uploads/2022/06/logo-udemedellin-2022.png" alt="UdeM" class="navbar-logo">
+      <span>UdeM Assistant</span>
+    </div>
+    <div class="navbar-actions">
+      <a href="/static/index.html" class="nav-btn">Ir al Chat</a>
+      <a href="/login" class="nav-btn nav-login">Iniciar Sesión</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO SECTION -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>Tu Asistente Virtual de la Universidad de Medellín</h1>
+    <p>Resuelve tus dudas al instante con IA. Disponible 24/7 por chat, WhatsApp o conecta con un asesor.</p>
+    <div class="hero-cta">
+      <a href="/static/index.html" class="btn btn-primary">Comenzar a Chatear</a>
+      <button class="btn btn-secondary" onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth'})">Conocer Más</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <strong>1000+</strong>
+        <span>Preguntas Respondidas</span>
+      </div>
+      <div class="stat">
+        <strong>95%</strong>
+        <span>Satisfacción</span>
+      </div>
+      <div class="stat">
+        <strong>24/7</strong>
+        <span>Disponible</span>
+      </div>
+    </div>
+  </div>
+  <div class="hero-image">
+    <div class="hero-graphic">
+      <svg viewBox="0 0 400 400" class="chat-illustration">
+        <rect x="50" y="50" width="300" height="300" rx="20" fill="#f5f5f5" stroke="#B71C1C" stroke-width="2"/>
+        <circle cx="100" cy="100" r="30" fill="#B71C1C"/>
+        <rect x="150" y="90" width="150" height="20" rx="10" fill="#e0e0e0"/>
+        <rect x="150" y="120" width="130" height="15" rx="7" fill="#e0e0e0"/>
+        <circle cx="300" cy="200" r="35" fill="#4ADE80"/>
+        <rect x="100" y="200" width="150" height="20" rx="10" fill="#e0e0e0"/>
+        <rect x="100" y="230" width="130" height="15" rx="7" fill="#e0e0e0"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES SECTION -->
+<section id="features" class="features">
+  <h2>¿Qué Podemos Resolver?</h2>
+  <p class="section-subtitle">El chatbot inteligente puede ayudarte con:</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📞</div>
+      <h3>Contactos</h3>
+      <p>Teléfonos, direcciones y email de todas nuestras sedes</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">⏰</div>
+      <h3>Horarios</h3>
+      <p>Horarios de atención, biblioteca, piscina y más</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🎓</div>
+      <h3>Carreras</h3>
+      <p>20+ programas académicos disponibles</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">💰</div>
+      <h3>Becas</h3>
+      <p>Opciones de financiamiento y apoyo económico</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">✍️</div>
+      <h3>Inscripción</h3>
+      <p>Proceso paso a paso para registrarte</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">👨‍💼</div>
+      <h3>Asesor</h3>
+      <p>Conecta con un asesor en tiempo real</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-it-works">
+  <h2>¿Cómo Funciona?</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-number">1</div>
+      <h3>Haz tu Pregunta</h3>
+      <p>Escribe lo que necesitas saber sobre la universidad</p>
+    </div>
+
+    <div class="step">
+      <div class="step-number">2</div>
+      <h3>Respuesta Inmediata</h3>
+      <p>Recibe información concisa y relevante al instante</p>
+    </div>
+
+    <div class="step">
+      <div class="step-number">3</div>
+      <h3>Explora Más</h3>
+      <p>Accede a detalles completos si los necesitas</p>
+    </div>
+
+    <div class="step">
+      <div class="step-number">4</div>
+      <h3>Conecta o Valúa</h3>
+      <p>Habla con un asesor o cuéntanos tu experiencia</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT CHANNELS -->
+<section class="contact-channels">
+  <h2>Múltiples Canales de Contacto</h2>
+  <p class="section-subtitle">Elige cómo prefieres comunicarte:</p>
+
+  <div class="channels-grid">
+    <div class="channel">
+      <div class="channel-icon">💬</div>
+      <h3>Chat Web</h3>
+      <p>Conversación en tiempo real en nuestro sitio</p>
+      <a href="/static/index.html">Abrir Chat</a>
+    </div>
+
+    <div class="channel">
+      <div class="channel-icon">📱</div>
+      <h3>WhatsApp</h3>
+      <p>Conecta con el asistente IA por WhatsApp</p>
+      <button onclick="openWhatsAppChat()">WhatsApp Chat</button>
+    </div>
+
+    <div class="channel">
+      <div class="channel-icon">👨‍💼</div>
+      <h3>Asesor WhatsApp</h3>
+      <p>Habla directo con un asesor de la universidad</p>
+      <button onclick="openWhatsAppAdvisor()">Solicitar Asesor</button>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final">
+  <h2>¿Listo para Comenzar?</h2>
+  <p>Resuelve tus dudas en menos de un minuto</p>
+  <a href="/static/index.html" class="btn btn-primary btn-large">Abrir Chatbot</a>
+</section>
+
+<!-- FOOTER -->
+<footer class="landing-footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <h4>Universidad de Medellín</h4>
+      <p>Asistente Virtual Inteligente</p>
+    </div>
+    <div class="footer-section">
+      <h4>Contacto</h4>
+      <p>+57 (604) 590 45 00</p>
+      <p>Cra. 87 #30-65, Medellín</p>
+    </div>
+    <div class="footer-section">
+      <h4>Síguenos</h4>
+      <p>Facebook • Instagram • LinkedIn</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Universidad de Medellín. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<script src="/static/chatbot.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js"></script>
+</body>
+</html>
