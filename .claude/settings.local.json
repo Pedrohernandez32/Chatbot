@@ -36,7 +36,17 @@
       "Bash(awk '{print $5}')",
       "Bash(xargs -r taskkill /F /PID)",
       "Bash(taskkill *)",
-      "Bash(powershell *)"
+      "Bash(powershell *)",
+      "PowerShell(claude plugin add anthropics/claude-code/plugins/frontend-design)",
+      "PowerShell(claude --help)",
+      "PowerShell(claude plugin --help)",
+      "PowerShell(claude plugin install anthropics/claude-code/plugins/frontend-design)",
+      "PowerShell(claude plugin list)",
+      "PowerShell(git diff HEAD~5...HEAD > diff.txt; \\(Get-Content diff.txt\\).Length)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\p20on\\\\Documents\\\\Vsproyects\\\\Chatbot\" -Filter \"app.py\" -Recurse)",
+      "PowerShell(python -m py_compile app.py 2>&1)",
+      "PowerShell(head -20)",
+      "PowerShell(python -m py_compile app.py)"
     ]
   }
 }

@@ -1,239 +1,6 @@
 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 7922.20it/s]
- * Serving Flask app 'app'
- * Debug mode: on
-WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
- * Running on http://127.0.0.1:5000
-Press CTRL+C to quit
- * Restarting with stat
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 9364.32it/s]
- * Debugger is active!
- * Debugger PIN: 252-442-951
-127.0.0.1 - - [27/May/2026 10:55:21] "POST /api/chat HTTP/1.1" 500 -
-127.0.0.1 - - [27/May/2026 10:57:42] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2026 10:57:42] "GET /static/styles.css HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2026 10:57:43] "GET /static/chatbot.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2026 10:57:46] "POST /api/chat HTTP/1.1" 500 -
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
-[RAG] Indexando documentos desde la carpeta docs...
-[RAG] Indexación completada. 6 fragmentos almacenados.
- * Restarting with stat
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 9366.14it/s]
- * Debugger is active!
- * Debugger PIN: 252-442-951
-127.0.0.1 - - [27/May/2026 11:04:14] "POST /api/chat HTTP/1.1" 500 -
-127.0.0.1 - - [27/May/2026 11:04:32] "POST /api/chat HTTP/1.1" 500 -
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\openai_plugin.py', reloading
- * Restarting with stat
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 9363.71it/s]
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\openai_plugin.py', reloading
- * Restarting with stat
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 8583.10it/s]
- * Debugger is active!
- * Debugger PIN: 252-442-951
-127.0.0.1 - - [27/May/2026 11:07:34] "POST /api/chat HTTP/1.1" 500 -
-127.0.0.1 - - [27/May/2026 11:08:17] "POST /api/chat HTTP/1.1" 500 -
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\rag_plugin.py', reloading
- * Restarting with stat
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 8582.76it/s]
- * Debugger is active!
- * Debugger PIN: 252-442-951
-127.0.0.1 - - [27/May/2026 11:10:13] "POST /api/chat HTTP/1.1" 500 -
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\database.py', reloading
-DEBUG: response_content type: <class 'str'>
-DEBUG: response_content value: La universidad atiende de lunes a viernes de 9 a 18 hs.
- * Restarting with stat
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 9365.53it/s]
- * Debugger is active!
- * Debugger PIN: 252-442-951
-127.0.0.1 - - [27/May/2026 11:11:13] "POST /api/chat HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2026 11:13:21] "POST /api/chat HTTP/1.1" 200 -
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\tests\\test_chat.py', reloading
-DEBUG: response_content type: <class 'str'>
-DEBUG: response_content value: La universidad atiende de lunes a viernes de 9 a 18 hs.
-DEBUG: response_content type: <class 'str'>
-DEBUG: response_content value: La universidad atiende de lunes a viernes de 9 a 18 hs.
- * Restarting with stat
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 11447.09it/s]
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\rag_plugin.py', reloading
- * Restarting with stat
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 8584.81it/s]
- * Debugger is active!
- * Debugger PIN: 252-442-951
-127.0.0.1 - - [27/May/2026 11:17:12] "POST /api/chat HTTP/1.1" 200 -
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\tests\\test_client.py', reloading
-DEBUG: response_content type: <class 'str'>
-DEBUG: response_content value: Información encontrada en documentos oficiales:
-
-Política de Bienestar Estudiantil 2026:
-La Universidad ofrece un programa de apoyo psicológico gratuito para todos los estudiantes matriculados.
-El centro de bienestar se encuentra en el edificio B, segunda planta.
-El horario de atención es de 10:00 a 14:00 hs.
-Para solicitar una cita, el estudiante debe enviar un correo a bienestar@udem.edu.co con su nombre y código de alumno.
-
----
-ujeta a la inspección y vigilancia del Ministerio de Educación Nacional. Ofrece programas de Pregrado y Postgrado.
-
----
-MULOS:
-- BECA SOCIAL
-- BECA DE HONOR
-- BECA DE EXCELENCIA
-- BECA MEJORES SABER PRO
-- ESTÍMULOS MONITORÍAS ACADÉMICAS
-- ESTÍMULOS ACTIVIDADES DEPORTIVAS
-- ESTÍMULOS ACTIVIDADES CULTURALES Y ARTÍSTICAS...
-
-(Respuesta basada en los documentos indexados.)
- * Restarting with stat
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 7923.22it/s]
- * Debugger is active!
- * Debugger PIN: 252-442-951
-127.0.0.1 - - [27/May/2026 11:20:05] "POST /api/chat HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2026 11:25:10] "POST /api/chat HTTP/1.1" 200 -
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\tests\\run_ollama_test.py', reloading
-DEBUG: response_content type: <class 'str'>
-DEBUG: response_content value: Información encontrada en documentos oficiales:
-
-Política de Bienestar Estudiantil 2026:
-La Universidad ofrece un programa de apoyo psicológico gratuito para todos los estudiantes matriculados.
-El centro de bienestar se encuentra en el edificio B, segunda planta.
-El horario de atención es de 10:00 a 14:00 hs.
-Para solicitar una cita, el estudiante debe enviar un correo a bienestar@udem.edu.co con su nombre y código de alumno.
-
----
-MULOS:
-- BECA SOCIAL
-- BECA DE HONOR
-- BECA DE EXCELENCIA
-- BECA MEJORES SABER PRO
-- ESTÍMULOS MONITORÍAS ACADÉMICAS
-- ESTÍMULOS ACTIVIDADES DEPORTIVAS
-- ESTÍMULOS ACTIVIDADES CULTURALES Y ARTÍSTICAS
-- ESTÍMULO PARA PARTICIPACIONES DESTACADAS EN EVENTOS ACADÉMICOS EXTRACURRICULARES DE RECONOCIDO PRESTIGIO NACIONAL E INTERNACIONAL
-- ESTÍMULO MULTILINGÜISMO
-...
-
-(Respuesta basada en los documentos indexados.)
-DEBUG: response_content type: <class 'str'>
-DEBUG: response_content value: Información encontrada en documentos oficiales:
-
-ujeta a la inspección y vigilancia del Ministerio de Educación Nacional. Ofrece programas de Pregrado y Postgrado.
-
----
-Política de Bienestar Estudiantil 2026:
-La Universidad ofrece un programa de apoyo psicológico gratuito para todos los estudiantes matriculados.
-El centro de bienestar se encuentra en el edificio B, segunda planta.
-El horario de atención es de 10:00 a 14:00 hs.
-Para solicitar una cita, el estudiante debe enviar un correo a bienestar@udem.edu.co con su nombre y código de alumno.
-
----
-MULOS:
-- BECA SOCIAL
-- BECA DE HONOR
-- BECA DE EXCELENCIA
-- BECA MEJORES SABER PRO
-- ESTÍMULOS MONITORÍAS ACADÉMICAS
-- ESTÍMULOS ACTIVIDADES DEPORTIVAS
-- ESTÍMULOS ACTIVIDADES CULTURALES Y ARTÍSTICAS...
-
-(Respuesta basada en los documentos indexados.)
- * Restarting with stat
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 8583.78it/s]
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\tests\\call_ollama_run.py', reloading
- * Restarting with stat
-'[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1006)' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
-Retrying in 1s [Retry 1/5].
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 4291.72it/s]
 Traceback (most recent call last):
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\app.py", line 15, in <module>
-    import rag_plugin
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\rag_plugin.py", line 14, in <module>
-    embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\chromadb\utils\embedding_functions\sentence_transformer_embedding_function.py", line 44, in __init__
-    self.models[model_name] = SentenceTransformer(
-                              ^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\sentence_transformers\util\decorators.py", line 41, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\sentence_transformers\sentence_transformer\model.py", line 184, in __init__
-    super().__init__(
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\sentence_transformers\base\model.py", line 204, in __init__
-    modules, self.module_kwargs = self._load_modules(
-                                  ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\sentence_transformers\base\model.py", line 993, in _load_modules
-    return self._load_config_modules(model_name_or_path, **load_kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\sentence_transformers\base\model.py", line 1199, in _load_config_modules
-    module = module_class.load(
-             ^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\sentence_transformers\base\modules\transformer.py", line 1793, in load
-    return cls(model_name_or_path=model_name_or_path, **init_kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\sentence_transformers\util\decorators.py", line 87, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\sentence_transformers\base\modules\transformer.py", line 630, in __init__
-    config, is_peft_model = self._load_config(model_name_or_path, backend, config_kwargs)
-                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\sentence_transformers\base\modules\transformer.py", line 1410, in _load_config
-    adapter_config_file = find_adapter_config_file(
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\transformers\utils\peft_utils.py", line 84, in find_adapter_config_file
-    adapter_cached_filename = cached_file(
-                              ^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\transformers\utils\hub.py", line 278, in cached_file
-    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\transformers\utils\hub.py", line 512, in cached_files
-    raise e
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\transformers\utils\hub.py", line 422, in cached_files
-    hf_hub_download(
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\huggingface_hub\utils\_validators.py", line 88, in _inner_fn
-    return fn(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\huggingface_hub\file_download.py", line 1010, in hf_hub_download
-    return _hf_hub_download_to_cache_dir(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\huggingface_hub\file_download.py", line 1143, in _hf_hub_download_to_cache_dir
-    _get_metadata_or_catch_error(
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\huggingface_hub\file_download.py", line 1682, in _get_metadata_or_catch_error
-    metadata = get_hf_file_metadata(
-               ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\huggingface_hub\utils\_validators.py", line 88, in _inner_fn
-    return fn(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\huggingface_hub\file_download.py", line 1604, in get_hf_file_metadata
-    response = _httpx_follow_relative_redirects_with_backoff(
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\huggingface_hub\utils\_http.py", line 685, in _httpx_follow_relative_redirects_with_backoff
-    response = http_backoff(
-               ^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\huggingface_hub\utils\_http.py", line 559, in http_backoff
-    return next(
-           ^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\huggingface_hub\utils\_http.py", line 467, in _http_backoff_base
-    response = client.request(method=method, url=url, **kwargs)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\httpx\_client.py", line 825, in request
-    return self.send(request, auth=auth, follow_redirects=follow_redirects)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\.venv\Lib\site-packages\httpx\_client.py", line 901, in send
-    raise RuntimeError("Cannot send a request, as the client has been closed.")
-RuntimeError: Cannot send a request, as the client has been closed.
+  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\app.py", line 40, in <module>
+    raise ValueError('SECRET_KEY environment variable must be set')
+ValueError: SECRET_KEY environment variable must be set

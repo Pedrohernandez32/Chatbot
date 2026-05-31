@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chat - UdeM Assistant</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js"></script>
   <style>
@@ -27,6 +28,36 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
     }
 
     body {
@@ -53,6 +84,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      animation: slideDown 0.6s ease;
     }
 
     .header-brand {
@@ -104,12 +136,12 @@
       height: 8px;
       background: #4ADE80;
       border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
+      animation: statusPulse 2s ease-in-out infinite;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+    @keyframes statusPulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 #4ADE80; }
+      50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.2); }
     }
 
     .header-btn {
@@ -150,6 +182,7 @@
       gap: 8px;
       overflow-x: auto;
       scroll-behavior: smooth;
+      animation: slideDown 0.6s ease 0.1s backwards;
     }
 
     .quick-action {
@@ -164,7 +197,13 @@
       white-space: nowrap;
       transition: var(--transition);
       box-shadow: var(--shadow-sm);
+      animation: scaleIn 0.4s ease backwards;
     }
+
+    .quick-action:nth-child(2) { animation-delay: 0.15s; }
+    .quick-action:nth-child(3) { animation-delay: 0.2s; }
+    .quick-action:nth-child(4) { animation-delay: 0.25s; }
+    .quick-action:nth-child(5) { animation-delay: 0.3s; }
 
     .quick-action:hover {
       transform: translateY(-2px);
@@ -184,7 +223,7 @@
     .message-group {
       display: flex;
       gap: 10px;
-      animation: slideUp 0.4s ease;
+      animation: slideUp 0.5s ease backwards;
     }
 
     @keyframes slideUp {
@@ -345,8 +384,9 @@
     }
 
     .send-btn:hover {
-      transform: scale(1.05);
+      transform: scale(1.08);
       box-shadow: var(--shadow-md);
+      animation: bounce 0.4s ease;
     }
 
     .send-btn:active {
@@ -417,7 +457,15 @@
       cursor: pointer;
       transition: var(--transition);
       border: 1px solid transparent;
+      animation: fadeIn 0.5s ease backwards;
     }
+
+    .suggestion-card:nth-child(2) { animation-delay: 0.2s; }
+    .suggestion-card:nth-child(3) { animation-delay: 0.3s; }
+    .suggestion-card:nth-child(4) { animation-delay: 0.4s; }
+    .suggestion-card:nth-child(5) { animation-delay: 0.5s; }
+    .suggestion-card:nth-child(6) { animation-delay: 0.6s; }
+    .suggestion-card:nth-child(7) { animation-delay: 0.7s; }
 
     .suggestion-card:hover {
       background: var(--primary-light);
@@ -508,28 +556,28 @@
     <div class="chat-area">
       <!-- QUICK ACTIONS -->
       <div class="quick-actions" id="quickActions">
-        <button class="quick-action" onclick="sendMessage('¿Cuál es el horario?')">⏰ Horarios</button>
-        <button class="quick-action" onclick="sendMessage('¿Dónde queda?')">📍 Ubicación</button>
-        <button class="quick-action" onclick="sendMessage('Carreras disponibles')">🎓 Carreras</button>
-        <button class="quick-action" onclick="sendMessage('¿Cómo me inscribo?')">✍️ Inscripción</button>
-        <button class="quick-action" onclick="sendMessage('Información de becas')">💰 Becas</button>
+        <button class="quick-action" onclick="sendMessage('¿Cuál es el horario?')"><i class="fas fa-clock"></i> Horarios</button>
+        <button class="quick-action" onclick="sendMessage('¿Dónde queda?')"><i class="fas fa-map-pin"></i> Ubicación</button>
+        <button class="quick-action" onclick="sendMessage('Carreras disponibles')"><i class="fas fa-graduation-cap"></i> Carreras</button>
+        <button class="quick-action" onclick="sendMessage('¿Cómo me inscribo?')"><i class="fas fa-pen"></i> Inscripción</button>
+        <button class="quick-action" onclick="sendMessage('Información de becas')"><i class="fas fa-piggy-bank"></i> Becas</button>
       </div>
 
       <!-- MESSAGES AREA -->
       <div class="messages" id="msgsContainer">
         <div class="message-group">
-          <div class="avatar">🤖</div>
+          <div class="avatar"><i class="fas fa-robot"></i></div>
           <div class="message-content">
             <div class="message-bubble bot">
-              <p>¡Hola! 👋 Soy tu asistente virtual de la <strong>Universidad de Medellín</strong>.</p>
+              <p><i class="fas fa-hand"></i> ¡Hola! Soy tu asistente virtual de la <strong>Universidad de Medellín</strong>.</p>
               <p>Estoy aquí para resolver todas tus dudas sobre:</p>
               <ul>
-                <li>📞 Contactos y ubicación</li>
-                <li>⏰ Horarios</li>
-                <li>🎓 Carreras académicas</li>
-                <li>💰 Becas y financiamiento</li>
-                <li>✍️ Proceso de inscripción</li>
-                <li>👨‍💼 Conectar con un asesor</li>
+                <li><i class="fas fa-phone"></i> Contactos y ubicación</li>
+                <li><i class="fas fa-clock"></i> Horarios</li>
+                <li><i class="fas fa-graduation-cap"></i> Carreras académicas</li>
+                <li><i class="fas fa-piggy-bank"></i> Becas y financiamiento</li>
+                <li><i class="fas fa-pen"></i> Proceso de inscripción</li>
+                <li><i class="fas fa-headset"></i> Conectar con un asesor</li>
               </ul>
               <p>¿En qué puedo ayudarte hoy?</p>
             </div>
@@ -548,24 +596,24 @@
 
     <!-- SIDEBAR SUGGESTIONS -->
     <div class="suggestions-sidebar">
-      <div class="suggestions-title">💡 Preguntas Frecuentes</div>
+      <div class="suggestions-title"><i class="fas fa-lightbulb"></i> Preguntas Frecuentes</div>
       <div class="suggestion-card" onclick="sendMessage('¿Cuál es el horario de atención?')">
-        <p>¿Cuál es el horario de atención?</p>
+        <p><i class="fas fa-clock" style="margin-right: 6px;"></i>¿Cuál es el horario?</p>
       </div>
       <div class="suggestion-card" onclick="sendMessage('¿Dónde queda la universidad?')">
-        <p>¿Dónde queda la universidad?</p>
+        <p><i class="fas fa-map-pin" style="margin-right: 6px;"></i>¿Dónde queda?</p>
       </div>
       <div class="suggestion-card" onclick="sendMessage('¿Qué carreras ofrecen?')">
-        <p>¿Qué carreras ofrecen?</p>
+        <p><i class="fas fa-graduation-cap" style="margin-right: 6px;"></i>Carreras</p>
       </div>
       <div class="suggestion-card" onclick="sendMessage('¿Cómo me inscribo?')">
-        <p>¿Cómo me inscribo?</p>
+        <p><i class="fas fa-pen" style="margin-right: 6px;"></i>Inscripción</p>
       </div>
       <div class="suggestion-card" onclick="sendMessage('¿Qué becas hay disponibles?')">
-        <p>¿Qué becas hay disponibles?</p>
+        <p><i class="fas fa-piggy-bank" style="margin-right: 6px;"></i>Becas</p>
       </div>
       <div class="suggestion-card" onclick="sendMessage('¿Cuáles son los contactos?')">
-        <p>¿Cuáles son los contactos?</p>
+        <p><i class="fas fa-phone" style="margin-right: 6px;"></i>Contactos</p>
       </div>
     </div>
   </div>
@@ -580,8 +628,9 @@
   function addMessage(text, isUser = false) {
     const msgGroup = document.createElement('div');
     msgGroup.className = `message-group ${isUser ? 'user' : ''}`;
+    const avatarIcon = isUser ? '<i class="fas fa-user-circle"></i>' : '<i class="fas fa-robot"></i>';
     msgGroup.innerHTML = `
-      <div class="avatar">${isUser ? '👤' : '🤖'}</div>
+      <div class="avatar">${avatarIcon}</div>
       <div class="message-content">
         <div class="message-bubble ${isUser ? 'user' : 'bot'}">
           ${text}
@@ -597,7 +646,7 @@
     msgGroup.className = 'message-group';
     msgGroup.id = 'typing';
     msgGroup.innerHTML = `
-      <div class="avatar">🤖</div>
+      <div class="avatar"><i class="fas fa-robot"></i></div>
       <div class="message-content">
         <div class="typing-indicator">
           <div class="typing-dot"></div>
@@ -643,7 +692,7 @@
       }
     } catch (e) {
       removeTyping();
-      addMessage('❌ Error: No pude procesar tu mensaje. Intenta de nuevo.');
+      addMessage('<i class="fas fa-circle-exclamation" style="color: #E53E3E; margin-right: 6px;"></i>Error: No pude procesar tu mensaje. Intenta de nuevo.');
     }
   }
 
