@@ -9,6 +9,8 @@ import database as db
 import inspect
 from typing import Optional
 from urllib.parse import quote_plus
+import re
+import logging
 
 # Plugins
 import info_plugin
@@ -21,9 +23,22 @@ import tool_plugin
 
 load_dotenv()
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def validate_email(email: str) -> bool:
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return len(email) <= 120 and re.match(pattern, email) is not None
+
+def validate_username(username: str) -> bool:
+    return 3 <= len(username) <= 50 and re.match(r'^[a-zA-Z0-9_-]+$', username) is not None
+
 app = Flask(__name__)
 CORS(app)
-app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+secret_key = os.environ.get('SECRET_KEY')
+if not secret_key:
+    raise ValueError('SECRET_KEY environment variable must be set')
+app.secret_key = secret_key
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -193,8 +208,12 @@ def register():
 
 @app.route('/login', methods=['POST'])
 def login_post():
-    email = request.form.get('email')
-    password = request.form.get('password')
+    email = request.form.get('email', '').strip()
+    password = request.form.get('password', '')
+
+    if not validate_email(email):
+        return render_template('login.html', error='Email inválido')
+
     user_data = db.get_user_by_email(email)
     if user_data and check_password_hash(user_data['password_hash'], password):
         user = User(user_data['id'], user_data['username'], user_data['email'], user_data.get('is_admin', False))
@@ -202,18 +221,25 @@ def login_post():
         if user.is_admin:
             return redirect(url_for('admin_dashboard'))
         return redirect(url_for('index'))
-    return render_template('login.html', error="Credenciales incorrectas")
+    return render_template('login.html', error='Credenciales incorrectas')
 
 @app.route('/register', methods=['POST'])
 def register_post():
-    username = request.form.get('username')
-    email = request.form.get('email')
-    password = request.form.get('password')
-    if len(password) < 6:
-        return render_template('register.html', error='La contraseña debe tener al menos 6 caracteres')
+    username = request.form.get('username', '').strip()
+    email = request.form.get('email', '').strip()
+    password = request.form.get('password', '')
+
+    if not validate_username(username):
+        return render_template('register.html', error='Username debe tener 3-50 caracteres alfanuméricos')
+    if not validate_email(email):
+        return render_template('register.html', error='Email inválido')
+    if len(password) < 8:
+        return render_template('register.html', error='Contraseña debe tener al menos 8 caracteres')
+
     existing = db.get_user_by_email(email)
     if existing:
         return render_template('register.html', error='Este correo ya está registrado')
+
     password_hash = generate_password_hash(password)
     db.create_user(username, email, password_hash)
     return redirect(url_for('login', success='Cuenta creada exitosamente. Por favor inicia sesión.'))
@@ -304,17 +330,28 @@ def styles_css():
 @app.route('/api/advisor', methods=['POST'])
 def advisor_request():
     try:
-        data = request.get_json()
-        name = data.get('name')
-        email = data.get('email')
-        phone = data.get('phone')
-        message = data.get('message')
+        data = request.get_json() or {}
+        name = (data.get('name') or '').strip()
+        email = (data.get('email') or '').strip()
+        phone = (data.get('phone') or '').strip()
+        message = (data.get('message') or '').strip()
+
         if not name or not email or not message:
             return jsonify({'error': 'Faltan campos obligatorios'}), 400
+        if len(name) > 100 or not re.match(r'^[a-zA-Z\s\-\.\'áéíóúñ]+$', name):
+            return jsonify({'error': 'Nombre inválido'}), 400
+        if not validate_email(email):
+            return jsonify({'error': 'Email inválido'}), 400
+        if phone and not re.match(r'^[\d\s\-\+()]+$', phone):
+            return jsonify({'error': 'Teléfono inválido'}), 400
+        if len(message) > 1000:
+            return jsonify({'error': 'Mensaje muy largo'}), 400
+
         request_id = db.create_advisor_request(name, email, phone, message)
         return jsonify({'success': True, 'id': request_id})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Advisor request error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error procesando solicitud'}), 500
 
 
 @app.route('/api/advisor/connect', methods=['POST'])
@@ -347,10 +384,7 @@ def advisor_connect():
 
         if advisor_chat:
             contact['chat_url'] = advisor_chat
-        # If explicit WhatsApp number provided, build a wa.me link with prefilled text
         if not advisor_chat and advisor_whatsapp:
-            # Normalize number to digits
-            import re
             num = re.sub(r"\D", "", advisor_whatsapp)
             prefill = f"Hola, solicité conexión (ID: {req_id}). Mi nombre: {name}."
             wa_link = f"https://wa.me/{num}?text={quote_plus(prefill)}"
@@ -365,7 +399,8 @@ def advisor_connect():
 
         return jsonify({'success': True, 'id': req_id, 'status': 'live_requested', 'contact': contact})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Advisor connect error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error procesando solicitud'}), 500
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -377,14 +412,10 @@ def chat():
 
         user_id = current_user.id if current_user.is_authenticated else None
 
-        # The bot handle now returns either a string or a generator
         result = bot.handle(user_message, user_id=user_id)
         response_content, is_ai = result
-        print(f"DEBUG: response_content type: {type(response_content)}")
-        print(f"DEBUG: response_content value: {response_content}")
 
         if not isinstance(response_content, (str, bytes)):
-            # It's a generator or other iterable (streaming)
             def generate():
                 full_response = ""
                 try:
@@ -392,9 +423,9 @@ def chat():
                         full_response += chunk
                         yield f"data: {jsonify({'chunk': chunk}).get_data(as_text=True)}\n\n"
                 except Exception as e:
-                    yield f"data: {jsonify({'error': str(e)}).get_data(as_text=True)}\n\n"
+                    logger.error(f"Stream error: {str(e)}", exc_info=True)
+                    yield f"data: {jsonify({'error': 'Error procesando respuesta'}).get_data(as_text=True)}\n\n"
                 finally:
-                    # Save to DB after stream finishes
                     db.save_conversation(user_message, full_response, user_id=user_id)
                     yield f"data: {jsonify({'done': True}).get_data(as_text=True)}\n\n"
 
@@ -405,12 +436,14 @@ def chat():
             return jsonify({'response': response_content, 'ai': is_ai})
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        import logging
+        logging.error(f"Chat error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error procesando tu mensaje. Intenta de nuevo.'}), 500
 
 if __name__ == '__main__':
-    # Ensure database schema / initial data
     try:
         db.init_db()
     except Exception as e:
         print('DB init error:', e)
-    app.run(debug=True, port=5000)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, port=int(os.environ.get('PORT', 5000)))

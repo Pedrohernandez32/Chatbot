@@ -8,7 +8,7 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "chatbot.db")
 
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -142,9 +142,10 @@ def save_learned_response(keywords: str, answer: str) -> None:
 def get_learned_response(keywords: str) -> Optional[str]:
     conn = get_db()
     c = conn.cursor()
+    escaped_keywords = keywords.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
     c.execute(
-        "SELECT answer FROM learned_responses WHERE keywords LIKE ? ORDER BY usage_count DESC LIMIT 1",
-        (f"%{keywords}%",),
+        "SELECT answer FROM learned_responses WHERE keywords LIKE ? ESCAPE '\\' ORDER BY usage_count DESC LIMIT 1",
+        (f"%{escaped_keywords}%",),
     )
     row = c.fetchone()
     conn.close()
@@ -154,9 +155,10 @@ def get_learned_response(keywords: str) -> Optional[str]:
 def increment_learned_usage(keywords: str) -> None:
     conn = get_db()
     c = conn.cursor()
+    escaped_keywords = keywords.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
     c.execute(
-        "UPDATE learned_responses SET usage_count = usage_count + 1 WHERE keywords LIKE ?",
-        (f"%{keywords}%",),
+        "UPDATE learned_responses SET usage_count = usage_count + 1 WHERE keywords LIKE ? ESCAPE '\\'",
+        (f"%{escaped_keywords}%",),
     )
     conn.commit()
     conn.close()

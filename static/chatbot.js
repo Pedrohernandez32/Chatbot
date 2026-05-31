@@ -19,7 +19,9 @@ function goSlide(n) {
   });
 }
 
-setInterval(() => goSlide((currentSlide + 1) % galleryLabels.length), 3200);
+const galleryInterval = setInterval(() => goSlide((currentSlide + 1) % galleryLabels.length), 3200);
+
+window.addEventListener('beforeunload', () => clearInterval(galleryInterval));
 
 // ── Avatares ─────────────────────────────────────────────────
 function botAvatar() {
@@ -42,7 +44,11 @@ function userAvatar() {
 function addUserMsg(text) {
   const div = document.createElement('div');
   div.className = 'msg user-msg';
-  div.innerHTML = `${userAvatar()}<div class="bubble user-b">${text}</div>`;
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble user-b';
+  bubble.textContent = text;
+  div.innerHTML = userAvatar();
+  div.appendChild(bubble);
   msgsEl.appendChild(div);
   scrollToBottom();
 }
@@ -50,7 +56,11 @@ function addUserMsg(text) {
 function addBotMsg(html) {
   const div = document.createElement('div');
   div.className = 'msg';
-  div.innerHTML = `${botAvatar()}<div class="bubble bot-b">${html}</div>`;
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble bot-b';
+  bubble.innerHTML = DOMPurify.sanitize(html);
+  div.innerHTML = botAvatar();
+  div.appendChild(bubble);
   msgsEl.appendChild(div);
   scrollToBottom();
 }
@@ -144,7 +154,7 @@ async function sendMessage(text) {
               const data = JSON.parse(dataStr);
               if (data.chunk) {
                 fullText += data.chunk;
-                bubble.innerHTML = marked.parse(fullText);
+                bubble.innerHTML = DOMPurify.sanitize(marked.parse(fullText));
                 scrollToBottom();
               } else if (data.done) {
                 // Stream finished
