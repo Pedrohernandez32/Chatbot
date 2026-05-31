@@ -108,6 +108,31 @@ def init_db():
         )
     """)
 
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS push_subscriptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            endpoint TEXT UNIQUE NOT NULL,
+            auth TEXT NOT NULL,
+            p256dh TEXT NOT NULL,
+            user_agent TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS whatsapp_conversations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            phone_number TEXT NOT NULL,
+            message_text TEXT NOT NULL,
+            is_incoming BOOLEAN DEFAULT TRUE,
+            conversation_type TEXT DEFAULT 'general',
+            response_sent BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     piscina_hours = [
         ("piscina", "lunes", "6:00 - 8:00 y 18:00 - 21:00", "Solo alumnos con matrícula vigente"),
         ("piscina", "martes", "6:00 - 8:00 y 18:00 - 21:00", "Solo alumnos con matrícula vigente"),
@@ -416,3 +441,59 @@ def get_feedback_stats(limit: int = 10) -> list:
     rows = c.fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+
+def save_push_subscription(user_id: Optional[int], endpoint: str, auth: str, p256dh: str, user_agent: Optional[str] = None) -> int:
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "INSERT OR REPLACE INTO push_subscriptions (user_id, endpoint, auth, p256dh, user_agent) VALUES (?, ?, ?, ?, ?)",
+        (user_id, endpoint, auth, p256dh, user_agent)
+    )
+    conn.commit()
+    sub_id = c.lastrowid
+    conn.close()
+    return sub_id
+
+
+def get_all_push_subscriptions() -> list:
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT endpoint, auth, p256dh FROM push_subscriptions")
+    rows = c.fetchall()
+    conn.close()
+    return [{'endpoint': r['endpoint'], 'auth': r['auth'], 'p256dh': r['p256dh']} for r in rows]
+
+
+def delete_push_subscription(endpoint: str) -> None:
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("DELETE FROM push_subscriptions WHERE endpoint = ?", (endpoint,))
+    conn.commit()
+    conn.close()
+
+
+def save_whatsapp_conversation(phone_number: str, message_text: str, is_incoming: bool, conversation_type: str = 'general') -> int:
+    """conversation_type: 'advisor' or 'ai'"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO whatsapp_conversations (phone_number, message_text, is_incoming, conversation_type) VALUES (?, ?, ?, ?)",
+        (phone_number, message_text, is_incoming, conversation_type)
+    )
+    conn.commit()
+    conv_id = c.lastrowid
+    conn.close()
+    return conv_id
+
+
+def get_whatsapp_conversation_history(phone_number: str, limit: int = 10) -> list:
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "SELECT * FROM whatsapp_conversations WHERE phone_number = ? ORDER BY created_at DESC LIMIT ?",
+        (phone_number, limit)
+    )
+    rows = c.fetchall()
+    conn.close()
+    return [dict(row) for row in reversed(rows)] if rows else []

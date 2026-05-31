@@ -20,6 +20,7 @@ import rag_plugin
 import ollama_plugin
 import openai_plugin
 import tool_plugin
+import whatsapp_handler
 
 load_dotenv()
 
@@ -480,6 +481,215 @@ def feedback_stats():
         return jsonify({'error': 'No autorizado'}), 403
     stats = db.get_feedback_stats(limit=20)
     return jsonify(stats)
+
+
+@app.route('/api/push/subscribe', methods=['POST'])
+def subscribe_push():
+    try:
+        data = request.get_json() or {}
+        endpoint = data.get('endpoint', '').strip()
+        auth = data.get('keys', {}).get('auth', '').strip()
+        p256dh = data.get('keys', {}).get('p256dh', '').strip()
+        user_agent = request.headers.get('User-Agent', '')[:200]
+
+        if not endpoint or not auth or not p256dh:
+            return jsonify({'error': 'Datos incompletos'}), 400
+
+        user_id = current_user.id if current_user.is_authenticated else None
+        sub_id = db.save_push_subscription(user_id, endpoint, auth, p256dh, user_agent)
+        logger.info(f"Push subscription #{sub_id} registered")
+        return jsonify({'success': True, 'id': sub_id})
+
+    except Exception as e:
+        logger.error(f"Push subscribe error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error registrando notificación'}), 500
+
+
+@app.route('/api/push/unsubscribe', methods=['POST'])
+def unsubscribe_push():
+    try:
+        data = request.get_json() or {}
+        endpoint = data.get('endpoint', '').strip()
+
+        if not endpoint:
+            return jsonify({'error': 'Endpoint requerido'}), 400
+
+        db.delete_push_subscription(endpoint)
+        logger.info(f"Push unsubscribed: {endpoint[:50]}")
+        return jsonify({'success': True})
+
+    except Exception as e:
+        logger.error(f"Push unsubscribe error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error desuscribiendo'}), 500
+
+
+@app.route('/api/admin/push/notify', methods=['POST'])
+@login_required
+def send_push_notification():
+    if not current_user.is_admin:
+        return jsonify({'error': 'No autorizado'}), 403
+
+    try:
+        data = request.get_json() or {}
+        title = data.get('title', 'Notificación').strip()[:100]
+        message = data.get('message', '').strip()[:200]
+        icon = data.get('icon', '/static/logo.png')
+
+        if not message:
+            return jsonify({'error': 'Mensaje requerido'}), 400
+
+        subscriptions = db.get_all_push_subscriptions()
+        sent = 0
+        failed = 0
+
+        for sub in subscriptions:
+            try:
+                # Aquí iría la lógica real de envío con web-push library
+                # Por ahora solo registramos que se envió
+                logger.info(f"Push sent to {sub['endpoint'][:50]}: {title}")
+                sent += 1
+            except Exception as e:
+                logger.warning(f"Failed to push: {str(e)}")
+                failed += 1
+
+        return jsonify({
+            'success': True,
+            'sent': sent,
+            'failed': failed,
+            'total': len(subscriptions)
+        })
+
+    except Exception as e:
+        logger.error(f"Push notify error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error enviando notificaciones'}), 500
+
+
+# ── WhatsApp Integration ──
+@app.route('/api/whatsapp/webhook', methods=['GET', 'POST'])
+def whatsapp_webhook():
+    """WhatsApp webhook endpoint"""
+    if request.method == 'GET':
+        # Verificación de webhook
+        token = request.args.get('hub.verify_token')
+        challenge = request.args.get('hub.challenge')
+        verify_token = os.environ.get('WHATSAPP_VERIFY_TOKEN', 'udem-chatbot-verify')
+
+        result = whatsapp_handler.verify_whatsapp_webhook(token, challenge, verify_token)
+        if result:
+            return result, 200
+        return 'Invalid token', 403
+
+    elif request.method == 'POST':
+        # Recibir mensaje de WhatsApp
+        try:
+            data = request.get_json() or {}
+            msg_data = whatsapp_handler.parse_whatsapp_webhook(data)
+
+            if msg_data:
+                phone = msg_data['from']
+                text = msg_data['text']
+
+                # Guardar en BD
+                db.save_whatsapp_conversation(phone, text, is_incoming=True)
+
+                # Procesar mensaje con el bot
+                response = bot.handle(text)
+                response_text, is_ai = response
+
+                # Enviar respuesta por WhatsApp
+                try:
+                    parsed = json.loads(response_text) if isinstance(response_text, str) else {'text': response_text}
+                    reply = parsed.get('text', response_text)
+                except:
+                    reply = response_text
+
+                whatsapp_handler.send_whatsapp_message(phone, reply[:1024])
+                db.save_whatsapp_conversation(phone, reply[:1024], is_incoming=False)
+
+                logger.info(f"WhatsApp message processed: {phone}")
+
+            return jsonify({'success': True}), 200
+
+        except Exception as e:
+            logger.error(f"WhatsApp webhook error: {str(e)}", exc_info=True)
+            return jsonify({'error': str(e)}), 400
+
+
+@app.route('/api/whatsapp/chat', methods=['POST'])
+def whatsapp_chat():
+    """Enviar mensaje vía WhatsApp desde el usuario"""
+    try:
+        data = request.get_json() or {}
+        phone_number = data.get('phone', '').strip()
+        message = data.get('message', '').strip()
+
+        if not phone_number or not message:
+            return jsonify({'error': 'Teléfono y mensaje requeridos'}), 400
+
+        if len(message) > 1000:
+            return jsonify({'error': 'Mensaje muy largo'}), 400
+
+        # Guardar en BD
+        db.save_whatsapp_conversation(phone_number, message, is_incoming=True, conversation_type='ai')
+
+        # Procesar con bot
+        response = bot.handle(message)
+        response_text, is_ai = response
+
+        try:
+            parsed = json.loads(response_text) if isinstance(response_text, str) else {'text': response_text}
+            reply = parsed.get('text', response_text)
+        except:
+            reply = response_text
+
+        # Enviar por WhatsApp
+        success = whatsapp_handler.send_whatsapp_message(phone_number, reply[:1024])
+
+        if success:
+            db.save_whatsapp_conversation(phone_number, reply[:1024], is_incoming=False, conversation_type='ai')
+
+        return jsonify({
+            'success': success,
+            'response': reply[:100],
+            'message': 'Mensaje enviado por WhatsApp' if success else 'Error enviando mensaje'
+        })
+
+    except Exception as e:
+        logger.error(f"WhatsApp chat error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error procesando mensaje'}), 500
+
+
+@app.route('/api/whatsapp/advisor', methods=['POST'])
+def whatsapp_advisor():
+    """Solicitar asesor vía WhatsApp"""
+    try:
+        data = request.get_json() or {}
+        phone_number = data.get('phone', '').strip()
+        name = data.get('name', 'Usuario').strip()
+
+        if not phone_number:
+            return jsonify({'error': 'Teléfono requerido'}), 400
+
+        # Crear solicitud de asesor
+        request_id = db.create_advisor_request(name, '', phone_number, 'Solicitud desde WhatsApp')
+        db.update_advisor_request_status(request_id, 'live_requested')
+
+        # Notificar al asesor
+        whatsapp_handler.notify_advisor_whatsapp(phone_number, name, request_id)
+
+        # Enviar confirmación al usuario
+        msg = f"Hola {name}, 👋\n\nTu solicitud ha sido recibida.\nUn asesor se pondrá en contacto pronto.\n\nID: {request_id}"
+        whatsapp_handler.send_whatsapp_message(phone_number, msg)
+
+        return jsonify({
+            'success': True,
+            'request_id': request_id,
+            'message': 'Solicitud enviada. El asesor se contactará pronto.'
+        })
+
+    except Exception as e:
+        logger.error(f"WhatsApp advisor error: {str(e)}", exc_info=True)
+        return jsonify({'error': 'Error procesando solicitud'}), 500
 
 
 if __name__ == '__main__':

@@ -6,6 +6,166 @@
 const msgsEl = document.getElementById('msgs');
 const inpEl  = document.getElementById('inp');
 
+// ── Push Notifications Setup ──
+async function initPushNotifications() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    console.log('Push notifications not supported');
+    return;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.register('/static/service-worker.js');
+    console.log('Service Worker registered');
+
+    // Solicitar permiso
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      console.log('Push notification permission granted');
+      subscribeToPushNotifications(registration);
+    }
+  } catch (e) {
+    console.error('Service Worker registration failed:', e);
+  }
+}
+
+async function subscribeToPushNotifications(registration) {
+  try {
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      // Si no está suscrito, crear nueva suscripción
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array('BCEyL-K_-eL3LhC6SY-7eRAXGfX-F1VZyJxCMJ4r8LXqCK5qPl3lxJTKL_AjKQvDCQwk_LfYLEYHhbGvQ6gqKEE')
+      });
+
+      // Enviar subscripción al servidor
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription.toJSON())
+      });
+
+      console.log('Push subscription sent to server');
+    }
+  } catch (e) {
+    console.error('Failed to subscribe to push:', e);
+  }
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+// Inicializar notificaciones push cuando carga la página
+window.addEventListener('load', initPushNotifications);
+
+// ── WhatsApp Integration ──
+function openWhatsAppChat() {
+  const modal = document.createElement('div');
+  modal.className = 'whatsapp-modal';
+  modal.innerHTML = `
+    <div class="whatsapp-modal-content">
+      <button class="close-modal" onclick="this.parentElement.parentElement.remove()">✕</button>
+      <h3>💬 Chat por WhatsApp</h3>
+      <p>Conecta con nuestro asistente de IA por WhatsApp</p>
+      <div class="whatsapp-form">
+        <input type="tel" id="wa-phone" placeholder="+57 300 123 4567" required>
+        <textarea id="wa-message" placeholder="¿Cuál es tu pregunta?" rows="3"></textarea>
+        <button onclick="sendWhatsAppMessage()">Enviar por WhatsApp</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function openWhatsAppAdvisor() {
+  const modal = document.createElement('div');
+  modal.className = 'whatsapp-modal';
+  modal.innerHTML = `
+    <div class="whatsapp-modal-content">
+      <button class="close-modal" onclick="this.parentElement.parentElement.remove()">✕</button>
+      <h3>👨‍💼 Asesor por WhatsApp</h3>
+      <p>Un asesor real te atenderá por WhatsApp</p>
+      <div class="whatsapp-form">
+        <input type="text" id="wa-name" placeholder="Tu nombre" required>
+        <input type="tel" id="wa-advisor-phone" placeholder="+57 300 123 4567" required>
+        <button onclick="requestAdvisorWhatsApp()">Conectar con Asesor</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function sendWhatsAppMessage() {
+  const phone = document.getElementById('wa-phone').value.trim();
+  const message = document.getElementById('wa-message').value.trim();
+
+  if (!phone || !message) {
+    alert('Por favor completa todos los campos');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/whatsapp/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, message })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert('✅ Mensaje enviado por WhatsApp. Revisa tu teléfono.');
+      document.querySelector('.whatsapp-modal').remove();
+    } else {
+      alert('❌ Error: ' + data.message);
+    }
+  } catch (e) {
+    alert('Error enviando mensaje: ' + e.message);
+  }
+}
+
+async function requestAdvisorWhatsApp() {
+  const name = document.getElementById('wa-name').value.trim();
+  const phone = document.getElementById('wa-advisor-phone').value.trim();
+
+  if (!name || !phone) {
+    alert('Por favor completa todos los campos');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/whatsapp/advisor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert('✅ Solicitud recibida. Un asesor te contactará por WhatsApp.');
+      document.querySelector('.whatsapp-modal').remove();
+    } else {
+      alert('❌ Error: ' + data.message);
+    }
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
 // ── Galería ──────────────────────────────────────────────────
 const galleryLabels = ['Campus UdeM', 'Edificio Forum', 'Biblioteca'];
 let currentSlide = 0;
