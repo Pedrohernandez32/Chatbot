@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(git commit *)",
+      "Bash(tail -50 /tmp/flask.log 2>/dev/null || echo \"No logs found\")",
+      "Read(//tmp/**)",
+      "Bash(pkill -9 -f \"python app.py\")",
+      "Bash(lsof -ti:5000)",
+      "Bash(xargs kill -9)",
+      "Bash(pkill -9 -f python)",
+      "Bash(git checkout *)",
+      "Bash(pkill -f python)",
+      "Bash(echo \"file:///c:/Users/p20on/Documents/Vsproyects/Chatbot/sistema_integral.html\")",
+      "Bash(git reset *)",
+      "Bash(awk '{print \"   \" $9 \" \\(\" $5 \"\\)\"}')",
+      "Bash(awk '{print \" \" $9 \" \\(\" $5 \"\\)\"}')",
+      "Bash(python server.py)",
+      "Bash(cp \"Asistente Virtual UdeMedellin.html\" static/index.html)"
     ]
   }
 }

@@ -1,238 +1,54 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chatbot Universidad de Medellín - Asistente Virtual</title>
-  <link rel="stylesheet" href="/static/styles.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Asistente Virtual de la Universidad de Medellín. Información sobre carreras, becas, admisiones, campus y vida estudiantil." />
+<meta name="keywords" content="Universidad de Medellín, carreras, becas, admisiones, educación superior, ingeniería, derecho, diseño, comunicación" />
+<meta name="author" content="Universidad de Medellín" />
+<meta name="theme-color" content="#1e40af" />
+<meta property="og:title" content="Universidad de Medellín · Asistente Virtual" />
+<meta property="og:description" content="Tu asistente inteligente para conocer todo sobre la Universidad de Medellín" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="/og-image.png" />
+<link rel="canonical" href="https://www.udemedellin.edu.co" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="UdeMedellin" />
+<title>Universidad de Medellín · Asistente Virtual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="chat.css" />
+<link rel="stylesheet" href="sections.css" />
+<link rel="stylesheet" href="sections3.css" />
+<link rel="stylesheet" href="login.css" />
+<link rel="stylesheet" href="admin.css" />
 </head>
 <body>
+<div id="root"></div>
 
-<div class="shell" id="shell">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-  <!-- HEADER -->
-  <div class="topbar">
-    <div class="topbar-main">
-      <div class="brand">
-        <div class="logo-img">
-          <img src="https://www.udemedellin.edu.co/wp-content/uploads/2022/06/logo-udemedellin-2022.png" alt="Logo Universidad de Medellín"/>
-        </div>
-        <div class="brand-text">
-          <h1>Universidad de Medellín</h1>
-          <p>Asistente Virtual</p>
-        </div>
-      </div>
-      <div class="online"><span class="online-dot"></span><span>En línea</span></div>
-      <div class="user-area" id="userArea">
-        <a href="/login" class="login-btn">Iniciar Sesión</a>
-      </div>
-    </div>
+<!-- Socket.io para WebSocket en tiempo real -->
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 
-    <!-- PILLS / PREGUNTAS FRECUENTES -->
-    <div class="pills-bar">
-      <div class="pill" onclick="sendQ('¿Cuál es el horario de atención?')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Horarios</span>
-      </div>
-      <div class="pill" onclick="sendQ('¿Dónde queda la universidad?')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        <span>Ubicación</span>
-      </div>
-      <div class="pill" onclick="sendQ('¿Qué carreras ofrecen?')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-        <span>Carreras</span>
-      </div>
-      <div class="pill" onclick="sendQ('¿Cómo me inscribo?')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-        <span>Inscripción</span>
-      </div>
-      <div class="pill" onclick="sendQ('¿Qué becas hay disponibles?')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
-        <span>Becas</span>
-      </div>
-      <div class="pill" onclick="sendQ('¿Cómo funciona la admisión?')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        <span>Admisión</span>
-      </div>
-      <div class="pill" onclick="sendQ('¿Cuándo abre la biblioteca?')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-        <span>Biblioteca</span>
-      </div>
-      <div class="pill" onclick="sendQ('¿Cuáles son los contactos?')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/></svg>
-        <span>Contacto</span>
-      </div>
-    </div>
-  </div>
+<!-- PWA Manager para notificaciones y offline -->
+<script src="/pwa_manager.js"></script>
 
-  <!-- BODY -->
-  <div class="body">
-
-    <!-- CHAT -->
-    <div class="chat">
-      <div class="msgs" id="msgs">
-        <div class="divider">Hoy · Asistente Virtual UdeM</div>
-        <div class="msg">
-          <div class="av av-bot">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.07 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-          </div>
-          <div class="bubble bot-b">
-            <p>¡Hola! Soy el asistente virtual de la <strong>Universidad de Medellín</strong>. Estoy aquí para orientarte.</p>
-            <ul>
-              <li>Horarios y ubicación del campus</li>
-              <li>Carreras y programas académicos</li>
-              <li>Inscripciones y matrículas</li>
-              <li>Becas y apoyo económico</li>
-              <li>Admisiones y trámites</li>
-              <li>Biblioteca y campus</li>
-            </ul>
-            <p>¿Con qué te puedo ayudar hoy?</p>
-            <div class="chips">
-              <span class="chip" onclick="sendQ('¿Qué carreras ofrecen?')">Ver carreras</span>
-              <span class="chip" onclick="sendQ('¿Qué becas hay disponibles?')">Conocer becas</span>
-              <span class="chip" onclick="sendQ('¿Cómo me inscribo?')">Inscribirme</span>
-              <span class="chip" onclick="openModal()">Hablar con asesor</span>
-              <span class="chip" onclick="connectAdvisorNow()">Conectar ahora</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- INPUT -->
-      <div class="input-zone">
-        <input class="inp" id="inp" type="text" placeholder="Escribe tu pregunta..." autocomplete="off" onkeydown="if(event.key==='Enter')go()"/>
-        <button class="sbtn" onclick="go()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- PANEL DERECHO -->
-    <aside class="panel">
-      <!-- GALERÍA -->
-      <div class="gallery">
-        <div class="gallery-imgs" id="galleryImgs">
-          <img class="gimg" src="https://www.udemedellin.edu.co/wp-content/uploads/2023/09/campus-udem.jpg" onerror="this.style.display='none'" alt="Campus UdeM"/>
-          <img class="gimg" src="https://www.udemedellin.edu.co/wp-content/uploads/2023/01/forum-udem.jpg" onerror="this.style.display='none'" alt="Edificio Forum"/>
-          <img class="gimg" src="https://www.udemedellin.edu.co/wp-content/uploads/2022/08/biblioteca-udem.jpg" onerror="this.style.display='none'" alt="Biblioteca"/>
-        </div>
-        <div class="gallery-label" id="galleryLabel">Campus UdeM</div>
-        <div class="gallery-dots" id="galleryDots">
-          <div class="gdot on" onclick="goSlide(0)"></div>
-          <div class="gdot" onclick="goSlide(1)"></div>
-          <div class="gdot" onclick="goSlide(2)"></div>
-        </div>
-      </div>
-
-      <!-- TARJETAS -->
-      <div class="panel-inner">
-        <div class="panel-label">Accesos rápidos</div>
-        <div class="pcard" onclick="sendQ('¿Cuál es el horario de atención?')">
-          <div class="pcard-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-          <div class="pcard-text"><p>Horarios</p><span>Lun–Vie · Sáb</span></div>
-        </div>
-        <div class="pcard" onclick="sendQ('¿Dónde queda la universidad?')">
-          <div class="pcard-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-          <div class="pcard-text"><p>Ubicación</p><span>Belén, Medellín</span></div>
-        </div>
-        <div class="pcard" onclick="sendQ('¿Qué carreras ofrecen?')">
-          <div class="pcard-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
-          <div class="pcard-text"><p>Programas</p><span>Pre y posgrado</span></div>
-        </div>
-        <div class="pcard" onclick="sendQ('¿Qué becas hay disponibles?')">
-          <div class="pcard-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></div>
-          <div class="pcard-text"><p>Becas</p><span>Mérito y deporte</span></div>
-        </div>
-        <div class="pcard" onclick="sendQ('¿Cómo me inscribo?')">
-          <div class="pcard-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
-          <div class="pcard-text"><p>Inscripción</p><span>Proceso en línea</span></div>
-        </div>
-        <div class="pcard" onclick="sendQ('¿Cuándo abre la biblioteca?')">
-          <div class="pcard-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
-          <div class="pcard-text"><p>Biblioteca</p><span>Alfonso Mora N.</span></div>
-        </div>
-
-        <div style="margin-top:14px;">
-          <div class="panel-label">¿Necesitas más ayuda?</div>
-          <div class="advisor-cta" onclick="openModal()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <p>Hablar con un asesor</p>
-            <span>Respuesta en minutos</span>
-          </div>
-        </div>
-      </div>
-    </aside>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="footer">
-    <p>Sistema de Atención Virtual · UdeM</p>
-    <div class="footer-loc">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      <p>Cra. 87 #30-65, Belén</p>
-    </div>
-  </div>
-
-  <!-- MODAL ASESOR -->
-  <div class="overlay" id="overlay">
-    <div class="modal">
-      <div class="modal-hdr">
-        <div>
-          <div class="modal-title">Contactar asesor</div>
-          <div class="modal-sub">Te responderemos muy pronto</div>
-        </div>
-        <button class="mclose" onclick="closeModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-      <div class="fgrid">
-        <div class="frow">
-          <div class="fg"><label>Nombre completo</label><input type="text" id="advisorName" placeholder="Tu nombre"/></div>
-          <div class="fg"><label>Correo electrónico</label><input type="email" id="advisorEmail" placeholder="correo@ejemplo.com"/></div>
-        </div>
-        <div class="fg">
-          <label>Teléfono (opcional)</label>
-          <input type="tel" id="advisorPhone" placeholder="300 123 4567" style="max-width:200px"/>
-        </div>
-        <div class="fg">
-          <label>¿En qué te podemos ayudar?</label>
-          <textarea id="advisorMessage" rows="3" placeholder="Describe tu consulta..."></textarea>
-        </div>
-        <button class="msubmit" onclick="submitModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Enviar solicitud
-        </button>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /.shell -->
-
-<!-- Floating advisor button -->
-<button class="floating-advisor-btn" onclick="connectAdvisorNow()" aria-label="Conectar con asesor ahora">
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-  <span>Conectar ahora</span>
-</button>
-
-<!-- WhatsApp Floating Buttons -->
-<div class="whatsapp-buttons">
-  <button class="whatsapp-btn whatsapp-ai" onclick="openWhatsAppChat()" aria-label="Chat por WhatsApp">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004a9.87 9.87 0 00-4.92 1.523c-1.528.886-2.795 2.114-3.663 3.582C3.356 10.75 3 12.372 3 14.046c0 1.32.235 2.618.685 3.86L3 21l3.276-1.075c1.144.623 2.42.954 3.761.96h.006c5.522 0 10.007-4.486 10.007-10.007 0-2.65-1.035-5.144-2.949-7.033-1.914-1.888-4.397-2.923-7.052-2.923z"/>
-    </svg>
-    <span>WhatsApp AI</span>
-  </button>
-
-  <button class="whatsapp-btn whatsapp-advisor" onclick="openWhatsAppAdvisor()" aria-label="Hablar con asesor por WhatsApp">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004a9.87 9.87 0 00-4.92 1.523c-1.528.886-2.795 2.114-3.663 3.582C3.356 10.75 3 12.372 3 14.046c0 1.32.235 2.618.685 3.86L3 21l3.276-1.075c1.144.623 2.42.954 3.761.96h.006c5.522 0 10.007-4.486 10.007-10.007 0-2.65-1.035-5.144-2.949-7.033-1.914-1.888-4.397-2.923-7.052-2.923z"/>
-    </svg>
-    <span>Asesor WA</span>
-  </button>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js"></script>
-<script src="/static/chatbot.js"></script>
+<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="chat.jsx"></script>
+<script type="text/babel" src="sections.jsx"></script>
+<script type="text/babel" src="sections2.jsx"></script>
+<script type="text/babel" src="sections3.jsx"></script>
+<script type="text/babel" src="admin.jsx"></script>
+<script type="text/babel" src="login.jsx"></script>
+<script type="text/babel" src="AdvisorRequestIntegrado.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
 </body>
 </html>
