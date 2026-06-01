@@ -20,6 +20,7 @@ from info_plugin import register as register_info_plugin
 from ai_plugin import register as register_ai_plugin
 from openai_plugin import register as register_openai_plugin
 from ollama_plugin import register as register_ollama_plugin
+from advisor_routes import register_advisor_routes
 
 app = Flask(__name__)
 CORS(app)
@@ -341,6 +342,10 @@ def feedback():
             flag_for_review(conv_id)
 
     return jsonify({'ok': True})
+
+
+# Registrar rutas de asesores humanos
+register_advisor_routes(app)
 
 
 if __name__ == '__main__':

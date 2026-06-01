@@ -76,12 +76,44 @@ def init_db():
     c.execute("""
         CREATE TABLE IF NOT EXISTS advisor_requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
             name TEXT NOT NULL,
             email TEXT NOT NULL,
             phone TEXT,
+            topic TEXT,
+            message TEXT,
+            status TEXT DEFAULT 'waiting',
+            assigned_to INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            resolved_at TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id),
+            FOREIGN KEY(assigned_to) REFERENCES users(id)
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS advisor_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            request_id INTEGER,
+            sender_id INTEGER,
+            sender_type TEXT,
             message TEXT NOT NULL,
-            status TEXT DEFAULT 'pending',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(request_id) REFERENCES advisor_requests(id),
+            FOREIGN KEY(sender_id) REFERENCES users(id)
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS advisors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER UNIQUE,
+            department TEXT,
+            status TEXT DEFAULT 'offline',
+            current_chats INTEGER DEFAULT 0,
+            max_chats INTEGER DEFAULT 3,
+            last_active TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id)
         )
     """)
 
@@ -497,3 +529,136 @@ def get_whatsapp_conversation_history(phone_number: str, limit: int = 10) -> lis
     rows = c.fetchall()
     conn.close()
     return [dict(row) for row in reversed(rows)] if rows else []
+
+
+# ============= FUNCIONES PARA ASESORES HUMANOS =============
+
+def create_advisor_request(name: str, email: str, phone: str = None, topic: str = None, user_id: int = None) -> int:
+    """Crear solicitud de asesor humano"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO advisor_requests (user_id, name, email, phone, topic, status) VALUES (?, ?, ?, ?, ?, 'waiting')",
+        (user_id, name, email, phone, topic)
+    )
+    conn.commit()
+    request_id = c.lastrowid
+    conn.close()
+    return request_id
+
+
+def get_pending_advisor_requests() -> list:
+    """Obtener solicitudes pendientes de asesor"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""
+        SELECT * FROM advisor_requests
+        WHERE status IN ('waiting', 'assigned')
+        ORDER BY created_at ASC
+    """)
+    rows = c.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def assign_advisor_request(request_id: int, advisor_id: int) -> bool:
+    """Asignar solicitud a un asesor"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE advisor_requests SET assigned_to = ?, status = 'assigned' WHERE id = ?",
+        (advisor_id, request_id)
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+
+def add_advisor_message(request_id: int, sender_id: int, sender_type: str, message: str) -> int:
+    """Agregar mensaje en chat de asesor (sender_type: 'user' o 'advisor')"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO advisor_messages (request_id, sender_id, sender_type, message) VALUES (?, ?, ?, ?)",
+        (request_id, sender_id, sender_type, message)
+    )
+    conn.commit()
+    msg_id = c.lastrowid
+    conn.close()
+    return msg_id
+
+
+def get_advisor_messages(request_id: int) -> list:
+    """Obtener historial de mensajes de una solicitud"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "SELECT * FROM advisor_messages WHERE request_id = ? ORDER BY created_at ASC",
+        (request_id,)
+    )
+    rows = c.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def get_advisor_request(request_id: int) -> dict:
+    """Obtener detalles de una solicitud"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT * FROM advisor_requests WHERE id = ?", (request_id,))
+    row = c.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def close_advisor_request(request_id: int) -> bool:
+    """Cerrar solicitud de asesor"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE advisor_requests SET status = 'resolved', resolved_at = CURRENT_TIMESTAMP WHERE id = ?",
+        (request_id,)
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+
+def register_advisor(user_id: int, department: str) -> bool:
+    """Registrar un usuario como asesor"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "INSERT OR REPLACE INTO advisors (user_id, department, status) VALUES (?, ?, 'offline')",
+        (user_id, department)
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+
+def set_advisor_status(user_id: int, status: str) -> bool:
+    """Cambiar estado de asesor (online/offline)"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "UPDATE advisors SET status = ?, last_active = CURRENT_TIMESTAMP WHERE user_id = ?",
+        (status, user_id)
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+
+def get_available_advisors() -> list:
+    """Obtener asesores disponibles (online y con chats disponibles)"""
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("""
+        SELECT * FROM advisors
+        WHERE status = 'online' AND current_chats < max_chats
+        ORDER BY current_chats ASC
+    """)
+    rows = c.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
