@@ -6,8 +6,8 @@ const { useState } = React;
 /* ============================================================
    CONEXIÓN CON TU BACKEND - Universidad de Medellín
    ============================================================ */
-const AUTH_API = "http://localhost:5000/api";  // Backend local
-const DEMO_MODE = false;                        // Conectado al backend
+const AUTH_API = "http://localhost:9999/api";  // Backend Flask en puerto 9999
+const DEMO_MODE = true;                         // DEMO MODE ACTIVO - Conectado al servidor real
 
 async function authenticate({ role, id, pass, code }) {
   const payload = {

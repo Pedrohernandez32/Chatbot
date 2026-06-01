@@ -1,108 +1,29 @@
-Servidor iniciado en http://localhost:5000
- * Serving Flask app 'server'
- * Debug mode: on
-WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
- * Running on http://127.0.0.1:5000
-Press CTRL+C to quit
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\database.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\database.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\advisor_routes.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\advisor_routes.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
-Traceback (most recent call last):
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\server.py", line 24, in <module>
-    from websocket_server import init_websocket
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\websocket_server.py", line 150
-    """Indicador de "escribiendo""""
-                                   ^
-SyntaxError: unterminated string literal (detected at line 150)
- File "C:\Users\p20on\Documents\Vsproyects\Chatbot\websocket_server.py", line 150
-    """Indicador de "escribiendo""""
-                                   ^
-SyntaxError: unterminated string literal (detected at line 150)
- File "C:\Users\p20on\Documents\Vsproyects\Chatbot\wTraceback (most recent call last):
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\server.py", line 24, in <module>
-    from websocket_server import init_websocket
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\websocket_server.py", line 150
-    """Indicador de "escribiendo""""
-                                   ^
-SyntaxError: unterminated string literal (detected at line 150)
-ciado en http://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
-Traceback (most recent call last):
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\server.py", line 24, in <module>
-    from websocket_server import init_websocket
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\websocket_server.py", line 150
-    """Indicador de "escribiendo""""
-                                   ^
-SyntaxError: unterminated string literal (detected at line 150)
-tp://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\advisor_routes.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\advisor_routes.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 252-442-951
- * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
-Servidor iniciado en http://localhost:5000
- * Restarting with stat
-Traceback (most recent call last):
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\server.py", line 24, in <module>
-    from websocket_server import init_websocket
-  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\websocket_server.py", line 150
-    """Indicador de "escribiendo""""
-                                   ^
-SyntaxError: unterminated string literal (detected at line 150)
+127.0.0.1 - - [01/Jun/2026 12:02:56] "POST /api/chat HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:13] "GET /interfaz.html HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:13] "GET /styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:13] "GET /chat.css HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:13] "GET /sections.css HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:13] "GET /sections3.css HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:14] "GET /login.css HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:14] "GET /admin.css HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:14] "GET /icons.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:14] "GET /chat.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:14] "GET /sections.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:14] "GET /sections2.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:14] "GET /sections3.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:14] "GET /admin.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:14] "GET /login.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:14] "GET /app.jsx HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:14] code 404, message File not found
+127.0.0.1 - - [01/Jun/2026 12:03:14] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [01/Jun/2026 12:03:15] "GET /assets/logo-color-trim.png HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:15] "GET /assets/logo-blanco-trim.png HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:22] "POST /api/chat HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:22] "GET /interfaz.html HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:26] "GET /assets/campus-monumento.jpg HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:26] "GET /assets/campus-aereo.jpg HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:26] "GET /assets/biblioteca.webp HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:30] "POST /api/chat HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:41] "POST /api/chat HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:03:48] "POST /api/chat HTTP/1.1" 200 -
+127.0.0.1 - - [01/Jun/2026 12:04:01] "POST /api/chat HTTP/1.1" 200 -

@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(git commit -m ' *)",
+<<<<<<< HEAD
       "Bash(git commit *)",
       "Bash(tail -50 /tmp/flask.log 2>/dev/null || echo \"No logs found\")",
       "Read(//tmp/**)",
@@ -23,6 +24,9 @@
       "Bash(timeout 10 bash -c 'until curl -s http://localhost:5000 > /dev/null 2>&1; do sleep 1; done')",
       "Bash(timeout 5 bash -c 'until curl -s http://localhost:5000 > /dev/null 2>&1; do sleep 0.5; done')",
       "Bash(tasklist)"
+=======
+      "Bash(git commit *)"
+>>>>>>> 9ed60fbab74e6c323de8664b499a1e18ab1164bf
     ]
   }
 }

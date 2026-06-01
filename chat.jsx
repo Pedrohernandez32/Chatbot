@@ -95,6 +95,7 @@ function Chat() {
   const [sessionId] = useState(() => Date.now().toString());
   const [savedChats, setSavedChats] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [mostrarEscalada, setMostrarEscalada] = useState(false);
   const scrollRef = useRef(null);
 
   // Guardar conversación en localStorage
@@ -227,6 +228,13 @@ function Chat() {
         </div>
         <div className="chat-head-actions">
           <button
+            className="chat-btn-icon chat-btn-asesor"
+            onClick={() => setMostrarEscalada(true)}
+            title="Hablar con un asesor por WhatsApp"
+          >
+            💬
+          </button>
+          <button
             className="chat-btn-icon"
             onClick={() => setShowHistory(!showHistory)}
             title="Historial de chats"
@@ -308,6 +316,41 @@ function Chat() {
           <IconSend s={19} />
         </button>
       </div>
+
+      {mostrarEscalada === true && (
+        <div className="modal-overlay-asesor" onClick={() => setMostrarEscalada(false)}>
+          <div className="modal-asesor" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setMostrarEscalada(false)}>×</button>
+            <h3>📞 Habla con un asesor</h3>
+            <div className="asesores-grid">
+              <button className="asesor-btn" onClick={() => {
+                const msg = encodeURIComponent('Hola, tengo una consulta sobre admisiones en UdeMedellin.');
+                window.open('https://wa.me/573113610649?text=' + msg, '_blank');
+                setMostrarEscalada(false);
+              }}>
+                <span className="asesor-emoji">📋</span>
+                <span className="asesor-nombre">Admisiones</span>
+              </button>
+              <button className="asesor-btn" onClick={() => {
+                const msg = encodeURIComponent('Hola, tengo una consulta sobre becas en UdeMedellin.');
+                window.open('https://wa.me/573113610649?text=' + msg, '_blank');
+                setMostrarEscalada(false);
+              }}>
+                <span className="asesor-emoji">💰</span>
+                <span className="asesor-nombre">Becas</span>
+              </button>
+              <button className="asesor-btn" onClick={() => {
+                const msg = encodeURIComponent('Hola, necesito soporte técnico en UdeMedellin.');
+                window.open('https://wa.me/573113610649?text=' + msg, '_blank');
+                setMostrarEscalada(false);
+              }}>
+                <span className="asesor-emoji">🆘</span>
+                <span className="asesor-nombre">Soporte</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
