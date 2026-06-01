@@ -22,6 +22,7 @@ from openai_plugin import register as register_openai_plugin
 from ollama_plugin import register as register_ollama_plugin
 from advisor_routes import register_advisor_routes
 from ai_suggestions_routes import register_ai_suggestions_routes
+from integration_routes import register_integration_routes
 from websocket_server import init_websocket
 
 app = Flask(__name__)
@@ -29,6 +30,17 @@ CORS(app)
 
 # Inicializar WebSocket
 socketio = init_websocket(app)
+
+# Inicializar PWA (Service Worker)
+@app.route('/sw.js')
+def service_worker():
+    """Servir Service Worker"""
+    return send_from_directory('.', 'sw.js', mimetype='application/javascript')
+
+@app.route('/manifest.json')
+def manifest():
+    """Servir manifest para PWA"""
+    return send_from_directory('.', 'manifest.json', mimetype='application/json')
 
 # Load secret key from environment
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -349,9 +361,10 @@ def feedback():
     return jsonify({'ok': True})
 
 
-# Registrar rutas de asesores humanos y sugerencias de IA
+# Registrar todas las rutas
 register_advisor_routes(app)
 register_ai_suggestions_routes(app)
+register_integration_routes(app)  # Notificaciones, Meet, WhatsApp, Calendario
 
 
 if __name__ == '__main__':
