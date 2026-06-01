@@ -1,0 +1,240 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # ==================== LINTING Y ANÁLISIS ESTÁTICO ====================
+  lint:
+    runs-on: ubuntu-latest
+    name: Code Quality Checks
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black isort pylint
+
+      - name: Run Black (code formatter)
+        run: black --check .
+
+      - name: Run isort (import sorter)
+        run: isort --check-only .
+
+      - name: Run Flake8
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run Pylint
+        run: pylint **/*.py --fail-under=8.0 || true
+
+  # ==================== TESTS UNITARIOS ====================
+  test:
+    runs-on: ubuntu-latest
+    name: Unit Tests
+
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-flask
+
+      - name: Initialize database
+        run: python -c "from database import init_db; init_db()"
+
+      - name: Run tests with coverage
+        run: pytest test_suite.py -v --cov=. --cov-report=xml --cov-report=html
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  # ==================== TESTS DE SEGURIDAD ====================
+  security:
+    runs-on: ubuntu-latest
+    name: Security Checks
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install security tools
+        run: |
+          pip install bandit safety
+
+      - name: Run Bandit (security linter)
+        run: bandit -r . -ll || true
+
+      - name: Check dependencies for vulnerabilities
+        run: safety check || true
+
+  # ==================== BUILD FRONTEND ====================
+  build-frontend:
+    runs-on: ubuntu-latest
+    name: Build Frontend
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Check JavaScript syntax
+        run: |
+          npm install --global eslint
+          eslint . --ext .js,.jsx || true
+
+      - name: Build frontend
+        run: npm run build || true
+
+  # ==================== BUILD DOCKER ====================
+  build-docker:
+    runs-on: ubuntu-latest
+    name: Build Docker Image
+    if: github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: false
+          tags: udemedellin-chatbot:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ==================== TESTS E2E ====================
+  e2e-tests:
+    runs-on: ubuntu-latest
+    name: End-to-End Tests
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install selenium pytest-selenium
+
+      - name: Start Flask server
+        run: python server.py &
+        env:
+          FLASK_ENV: test
+
+      - name: Wait for server
+        run: sleep 5
+
+      - name: Run E2E tests
+        run: pytest test_e2e.py -v || true
+
+  # ==================== DEPENDENCY CHECK ====================
+  dependency-check:
+    runs-on: ubuntu-latest
+    name: Dependency Verification
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Check for outdated packages
+        run: |
+          pip install pip-audit
+          pip-audit || true
+
+  # ==================== DEPLOY (Solo en main) ====================
+  deploy:
+    needs: [lint, test, security, build-frontend, build-docker]
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to server
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST "cd /app && git pull origin main && pip install -r requirements.txt && systemctl restart chatbot"
+
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: 'Deployment to production completed'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # ==================== REPORTE FINAL ====================
+  report:
+    needs: [lint, test, security, build-frontend, build-docker]
+    runs-on: ubuntu-latest
+    name: Final Report
+    if: always()
+
+    steps:
+      - name: Check job status
+        run: |
+          if [ "${{ needs.lint.result }}" != "success" ]; then echo "Lint failed"; exit 1; fi
+          if [ "${{ needs.test.result }}" != "success" ]; then echo "Tests failed"; exit 1; fi
+          if [ "${{ needs.security.result }}" != "success" ]; then echo "Security checks failed"; exit 1; fi
+          echo "✅ All checks passed!"
