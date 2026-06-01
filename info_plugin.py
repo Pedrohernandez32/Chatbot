@@ -408,36 +408,33 @@ def extraer_palabras_clave(texto: str) -> List[str]:
 
 def coincide_carrera_flexible(prompt: str, nombre_carrera: str) -> bool:
     """
-    🎯 Búsqueda flexible: verifica si la carrera coincide con el prompt
-    Permite variaciones como "ingeniería de sistemas" vs "ingeniería en sistemas"
-    o "comunicacion grafica" vs "Comunicación Gráfica Publicitaria"
+    🎯 Búsqueda flexible mejorada: reconoce variaciones de palabras
+
+    Estrategia:
+    1. Si TODAS las palabras del prompt están en la carrera → MATCH
+    2. Si la mayoría (70%+) de palabras del prompt están → MATCH
+    3. Evita falsos positivos requiriendo al menos 70% de coincidencia
     """
     palabras_prompt = extraer_palabras_clave(prompt)
     palabras_carrera = extraer_palabras_clave(nombre_carrera)
 
-    # Si hay menos de 2 palabras clave en el prompt, requerir coincidencia exacta
-    if len(palabras_prompt) < 2:
-        return normalizar_texto(prompt.lower()) in normalizar_texto(nombre_carrera.lower()) or \
-               normalizar_texto(nombre_carrera.lower()) in normalizar_texto(prompt.lower())
+    # Si no hay palabras clave, devolver False
+    if not palabras_prompt or not palabras_carrera:
+        return False
 
-    # 🎯 BÚSQUEDA FLEXIBLE:
-    # Verificar que TODAS las palabras del prompt estén en la carrera
-    # Esto permite "comunicacion grafica" → "Comunicación Gráfica Publicitaria"
-    todas_palabras_encontradas = all(
-        any(p_prompt in p_carrera for p_carrera in palabras_carrera)
-        for p_prompt in palabras_prompt
-    )
+    # 🎯 ESTRATEGIA MEJORADA:
+    # Contar cuántas palabras del prompt están en la carrera (búsqueda fuzzy)
+    coincidencias = 0
+    for p_prompt in palabras_prompt:
+        for p_carrera in palabras_carrera:
+            # Búsqueda fuzzy: substring o coincidencia exacta
+            if p_prompt == p_carrera or p_prompt in p_carrera or p_carrera in p_prompt:
+                coincidencias += 1
+                break
 
-    if todas_palabras_encontradas:
-        return True
-
-    # Fallback: si al menos 80% de palabras de la carrera coinciden
-    coincidencias = sum(1 for p_carrera in palabras_carrera if any(p_carrera in p_prompt for p_prompt in palabras_prompt))
-    if len(palabras_carrera) > 0:
-        porcentaje = coincidencias / len(palabras_carrera)
-        return porcentaje >= 0.8
-
-    return False
+    # Requerir al menos 70% de coincidencia
+    porcentaje_coincidencia = coincidencias / len(palabras_prompt) if palabras_prompt else 0
+    return porcentaje_coincidencia >= 0.7
 
 def buscar_carrera(prompt: str) -> Optional[dict]:
     p_normalizado = normalizar_texto(prompt.lower())
