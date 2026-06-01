@@ -1,7 +1,7 @@
 /* ============================================================
-   App — composición + reveal on scroll + ask bridge
+   App — composición + reveal on scroll + ask bridge + advisor integration
    ============================================================ */
-const { useEffect } = React;
+const { useEffect, useState } = React;
 
 function useReveal() {
   useEffect(() => {
@@ -36,6 +36,13 @@ function askVivi(text) {
 
 function App() {
   useReveal();
+  const [advisorRequestData, setAdvisorRequestData] = useState(null);
+
+  const handleAdvisorRequest = (data) => {
+    console.log('✅ Solicitud de asesor creada:', data);
+    setAdvisorRequestData(data);
+  };
+
   return (
     <React.Fragment>
       <Nav />
@@ -51,6 +58,12 @@ function App() {
         <Login />
       </main>
       <Footer />
+
+      {/* Componente de Asesor en Línea - Integrado */}
+      <AdvisorRequestIntegrado
+        onRequestCreated={handleAdvisorRequest}
+        theme="light"
+      />
     </React.Fragment>
   );
 }
