@@ -16,7 +16,13 @@
       "Bash(awk '{print \"   \" $9 \" \\(\" $5 \"\\)\"}')",
       "Bash(awk '{print \" \" $9 \" \\(\" $5 \"\\)\"}')",
       "Bash(python server.py)",
-      "Bash(cp \"Asistente Virtual UdeMedellin.html\" static/index.html)"
+      "Bash(cp \"Asistente Virtual UdeMedellin.html\" static/index.html)",
+      "Bash(sed -i 's/\"\"\"Indicador de \"escribiendo\"\"\"\"/\"\"\"Indicador de escribiendo\"\"\"/g' websocket_server.py)",
+      "Bash(sed -i 's/\"\"\"Detener indicador de \"escribiendo\"\"\"\"/\"\"\"Detener indicador de escribiendo\"\"\"/g' websocket_server.py)",
+      "Bash(start \"C:\\\\Users\\\\p20on\\\\Documents\\\\Vsproyects\\\\Chatbot\\\\static\\\\index.html\")",
+      "Bash(timeout 10 bash -c 'until curl -s http://localhost:5000 > /dev/null 2>&1; do sleep 1; done')",
+      "Bash(timeout 5 bash -c 'until curl -s http://localhost:5000 > /dev/null 2>&1; do sleep 0.5; done')",
+      "Bash(tasklist)"
     ]
   }
 }

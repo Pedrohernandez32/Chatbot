@@ -55,11 +55,4 @@ function App() {
   );
 }
 
-// Exportar App globalmente para que test_simple.html pueda acceder
-window.App = App;
-window.askVivi = askVivi;
-
-// Montar automáticamente si existe el elemento root
-if (document.getElementById("root")) {
-  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);

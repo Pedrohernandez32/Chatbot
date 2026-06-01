@@ -147,7 +147,7 @@ def init_websocket(app):
 
     @socketio.on('typing')
     def handle_typing(data):
-        """Indicador de "escribiendo""""
+        # Indicador de escribiendo
         request_id = data.get('request_id')
         user_id = data.get('user_id')
         sender_type = data.get('sender_type')
@@ -161,7 +161,7 @@ def init_websocket(app):
 
     @socketio.on('stop_typing')
     def handle_stop_typing(data):
-        """Detener indicador de "escribiendo""""
+        # Detener indicador de escribiendo
         request_id = data.get('request_id')
         user_id = data.get('user_id')
 
