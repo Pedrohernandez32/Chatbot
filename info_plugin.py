@@ -400,6 +400,45 @@ def obtener_facultad_carrera(carrera_nombre: str) -> Optional[dict]:
                 return facultad
     return None
 
+def extraer_palabras_clave(texto: str) -> List[str]:
+    """Extrae palabras clave del texto (elimina palabras comunes)"""
+    palabras_comunes = {'de', 'en', 'y', 'o', 'la', 'el', 'un', 'una', 'los', 'las', 'unos', 'unas'}
+    palabras = normalizar_texto(texto.lower()).split()
+    return [p for p in palabras if p and p not in palabras_comunes]
+
+def coincide_carrera_flexible(prompt: str, nombre_carrera: str) -> bool:
+    """
+    🎯 Búsqueda flexible: verifica si la carrera coincide con el prompt
+    Permite variaciones como "ingeniería de sistemas" vs "ingeniería en sistemas"
+    o "comunicacion grafica" vs "Comunicación Gráfica Publicitaria"
+    """
+    palabras_prompt = extraer_palabras_clave(prompt)
+    palabras_carrera = extraer_palabras_clave(nombre_carrera)
+
+    # Si hay menos de 2 palabras clave en el prompt, requerir coincidencia exacta
+    if len(palabras_prompt) < 2:
+        return normalizar_texto(prompt.lower()) in normalizar_texto(nombre_carrera.lower()) or \
+               normalizar_texto(nombre_carrera.lower()) in normalizar_texto(prompt.lower())
+
+    # 🎯 BÚSQUEDA FLEXIBLE:
+    # Verificar que TODAS las palabras del prompt estén en la carrera
+    # Esto permite "comunicacion grafica" → "Comunicación Gráfica Publicitaria"
+    todas_palabras_encontradas = all(
+        any(p_prompt in p_carrera for p_carrera in palabras_carrera)
+        for p_prompt in palabras_prompt
+    )
+
+    if todas_palabras_encontradas:
+        return True
+
+    # Fallback: si al menos 80% de palabras de la carrera coinciden
+    coincidencias = sum(1 for p_carrera in palabras_carrera if any(p_carrera in p_prompt for p_prompt in palabras_prompt))
+    if len(palabras_carrera) > 0:
+        porcentaje = coincidencias / len(palabras_carrera)
+        return porcentaje >= 0.8
+
+    return False
+
 def buscar_carrera(prompt: str) -> Optional[dict]:
     p_normalizado = normalizar_texto(prompt.lower())
 
@@ -431,12 +470,16 @@ def buscar_carrera(prompt: str) -> Optional[dict]:
             'has_more': False
         }
 
-    # Buscar carrera específica
+    # Buscar carrera específica con búsqueda flexible
     for clave, info in CARRERAS.items():
         clave_normalizada = normalizar_texto(clave)
         nombre_normalizado = normalizar_texto(info['nombre'].lower())
 
-        if clave_normalizada in p_normalizado or nombre_normalizado in p_normalizado:
+        # 🎯 Búsqueda flexible: reconoce variaciones
+        coincide_exacto = clave_normalizada in p_normalizado or nombre_normalizado in p_normalizado
+        coincide_flexible = coincide_carrera_flexible(prompt, info['nombre'])
+
+        if coincide_exacto or coincide_flexible:
             # 🎯 Buscar la facultad a la que pertenece
             facultad = obtener_facultad_carrera(info['nombre'])
             facultad_info = ""
@@ -476,12 +519,16 @@ def buscar_beca(prompt: str) -> Optional[dict]:
     """Busca y devuelve información de una beca específica"""
     p_normalizado = normalizar_texto(prompt.lower())
 
-    # Buscar beca específica
+    # Buscar beca específica con búsqueda flexible
     for clave, info in BECAS_DETALLADAS.items():
         clave_normalizada = normalizar_texto(clave)
         nombre_normalizado = normalizar_texto(info['nombre'].lower())
 
-        if clave_normalizada in p_normalizado or nombre_normalizado in p_normalizado:
+        # 🎯 Búsqueda flexible: reconoce variaciones
+        coincide_exacto = clave_normalizada in p_normalizado or nombre_normalizado in p_normalizado
+        coincide_flexible = coincide_carrera_flexible(prompt, info['nombre'])
+
+        if coincide_exacto or coincide_flexible:
             # Construir respuesta detallada de la beca
             requisitos_texto = '\n'.join([f"  • {req}" for req in info['requisitos']])
             beneficios_texto = '\n'.join([f"  • {ben}" for ben in info['beneficios']])
