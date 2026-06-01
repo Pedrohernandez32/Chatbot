@@ -703,10 +703,17 @@ def buscar_calidad(prompt: str) -> Optional[dict]:
     }
 
 def info_handler(prompt: str) -> Optional[str]:
-    # 🎯 NUEVA LÓGICA INTELIGENTE - ORDEN POR ESPECIFICIDAD
+    # 🎯 LÓGICA INTELIGENTE CON PRIORIDAD CONTEXTUAL
 
-    # Prioridad 1: Búsquedas específicas (Profesores, Decanos, Calidad)
-    # Estas preguntas son MÁS específicas así que van primero
+    p_norm = normalizar_texto(prompt.lower())
+
+    # Prioridad 1: Si menciona "beca", buscar beca PRIMERO
+    if any(kw in p_norm for kw in ['beca', 'becas', 'estimulo', 'estimulos']):
+        beca_resp = buscar_beca(prompt)
+        if beca_resp:
+            return json.dumps(beca_resp, ensure_ascii=False)
+
+    # Prioridad 2: Búsquedas específicas (Profesores, Decanos)
     prof_resp = buscar_profesores(prompt)
     if prof_resp:
         return json.dumps(prof_resp, ensure_ascii=False)
@@ -715,26 +722,22 @@ def info_handler(prompt: str) -> Optional[str]:
     if decano_resp:
         return json.dumps(decano_resp, ensure_ascii=False)
 
+    # Prioridad 3: Calidad/Acreditación
     calidad_resp = buscar_calidad(prompt)
     if calidad_resp:
         return json.dumps(calidad_resp, ensure_ascii=False)
 
-    # Prioridad 2: Búsqueda de beca específica
-    beca_resp = buscar_beca(prompt)
-    if beca_resp:
-        return json.dumps(beca_resp, ensure_ascii=False)
-
-    # Prioridad 3: Búsqueda de carrera (incluyendo ingenierías como grupo)
+    # Prioridad 4: Búsqueda de carrera (incluyendo ingenierías como grupo)
     carrera_resp = buscar_carrera(prompt)
     if carrera_resp:
         return json.dumps(carrera_resp, ensure_ascii=False)
 
-    # Prioridad 4: Búsqueda por categoría (Contacto, Horarios, Campus, etc.)
+    # Prioridad 5: Búsqueda por categoría (Contacto, Horarios, Campus, etc.)
     categoria_resp = buscar_categoria(prompt)
     if categoria_resp:
         return json.dumps(categoria_resp, ensure_ascii=False)
 
-    # Prioridad 5: Pregunta genérica o no reconocida
+    # Prioridad 6: Pregunta genérica o no reconocida
     if any(w in prompt.lower() for w in ('universidad', 'información', 'informacion', 'institución', 'institucion', 'help', 'ayuda')):
         response = {
             'text': "Soy el asistente virtual de **Universidad de Medellín**. Puedo ayudarte con:\n📚 **Carreras** | 💰 **Becas** | 📞 **Contactos** | ⏰ **Horarios** | 👨‍🏫 **Profesores** | 🏛️ **Decanos** | ✨ **Calidad**\n\n¿Qué necesitas saber?",
