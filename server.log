@@ -7,3 +7,102 @@ Press CTRL+C to quit
  * Restarting with stat
  * Debugger is active!
  * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\database.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\database.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\advisor_routes.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\advisor_routes.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+Traceback (most recent call last):
+  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\server.py", line 24, in <module>
+    from websocket_server import init_websocket
+  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\websocket_server.py", line 150
+    """Indicador de "escribiendo""""
+                                   ^
+SyntaxError: unterminated string literal (detected at line 150)
+ File "C:\Users\p20on\Documents\Vsproyects\Chatbot\websocket_server.py", line 150
+    """Indicador de "escribiendo""""
+                                   ^
+SyntaxError: unterminated string literal (detected at line 150)
+ File "C:\Users\p20on\Documents\Vsproyects\Chatbot\wTraceback (most recent call last):
+  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\server.py", line 24, in <module>
+    from websocket_server import init_websocket
+  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\websocket_server.py", line 150
+    """Indicador de "escribiendo""""
+                                   ^
+SyntaxError: unterminated string literal (detected at line 150)
+ciado en http://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+Traceback (most recent call last):
+  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\server.py", line 24, in <module>
+    from websocket_server import init_websocket
+  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\websocket_server.py", line 150
+    """Indicador de "escribiendo""""
+                                   ^
+SyntaxError: unterminated string literal (detected at line 150)
+tp://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\advisor_routes.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\advisor_routes.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 252-442-951
+ * Detected change in 'C:\\Users\\p20on\\Documents\\Vsproyects\\Chatbot\\server.py', reloading
+Servidor iniciado en http://localhost:5000
+ * Restarting with stat
+Traceback (most recent call last):
+  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\server.py", line 24, in <module>
+    from websocket_server import init_websocket
+  File "C:\Users\p20on\Documents\Vsproyects\Chatbot\websocket_server.py", line 150
+    """Indicador de "escribiendo""""
+                                   ^
+SyntaxError: unterminated string literal (detected at line 150)

@@ -21,9 +21,14 @@ from ai_plugin import register as register_ai_plugin
 from openai_plugin import register as register_openai_plugin
 from ollama_plugin import register as register_ollama_plugin
 from advisor_routes import register_advisor_routes
+from ai_suggestions_routes import register_ai_suggestions_routes
+from websocket_server import init_websocket
 
 app = Flask(__name__)
 CORS(app)
+
+# Inicializar WebSocket
+socketio = init_websocket(app)
 
 # Load secret key from environment
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -344,8 +349,9 @@ def feedback():
     return jsonify({'ok': True})
 
 
-# Registrar rutas de asesores humanos
+# Registrar rutas de asesores humanos y sugerencias de IA
 register_advisor_routes(app)
+register_ai_suggestions_routes(app)
 
 
 if __name__ == '__main__':
