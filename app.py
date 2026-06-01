@@ -255,6 +255,18 @@ def logout():
 def index():
     return send_from_directory('static', 'index.html')
 
+@app.route('/asistente')
+def asistente():
+    """Sirve el nuevo diseño React del asistente"""
+    return send_from_directory('.', 'Asistente Virtual UdeMedellin.html')
+
+@app.route('/<path:filename>')
+def serve_root_files(filename):
+    """Sirve archivos JSX y CSS desde la raíz"""
+    if filename.endswith(('.jsx', '.js', '.css', '.html')):
+        return send_from_directory('.', filename)
+    return send_from_directory('static', filename)
+
 @app.route('/admin')
 @login_required
 def admin_dashboard():

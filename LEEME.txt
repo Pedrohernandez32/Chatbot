@@ -1,0 +1,48 @@
+============================================================
+ ASISTENTE VIRTUAL · UNIVERSIDAD DE MEDELLÍN
+============================================================
+
+CONTENIDO
+- Asistente Virtual UdeMedellin.html  → página principal (ábrela en el navegador)
+- *.jsx / *.css                        → código y estilos
+- assets/                              → fotos del campus y logos
+
+------------------------------------------------------------
+1) CÓMO ABRIRLO EN TU PC
+------------------------------------------------------------
+La página usa varios archivos, así que conviene abrirla con un
+servidor local sencillo (si abres el HTML con doble clic, el
+navegador puede bloquear la carga de los archivos .jsx).
+
+Opción fácil con Visual Studio Code:
+  - Instala la extensión "Live Server".
+  - Clic derecho sobre "Asistente Virtual UdeMedellin.html"
+    → "Open with Live Server".
+
+Opción con Python (si lo tienes instalado):
+  - Abre una terminal dentro de esta carpeta y ejecuta:
+        python -m http.server 8000
+  - Entra en el navegador a:  http://localhost:8000
+  - Abre "Asistente Virtual UdeMedellin.html"
+
+------------------------------------------------------------
+2) CONECTAR TU BACKEND (inicio de sesión)
+------------------------------------------------------------
+Abre el archivo  login.jsx  y, al inicio, edita:
+
+    const AUTH_API  = "https://TU-BACKEND.com/api";  // tu URL
+    const DEMO_MODE = true;                           // pon false al conectar
+
+Con DEMO_MODE = false, el login hará:
+    POST {AUTH_API}/auth/login
+    body JSON: { role, username, password, code }
+    respuesta esperada: { name, role, token }
+
+------------------------------------------------------------
+3) NOTAS
+------------------------------------------------------------
+- El chat con IA y la conexión al backend requieren internet.
+- Las fotos y el logo son los que tú proporcionaste.
+- El inicio de sesión diferencia "Usuario" y "Administrador".
+
+============================================================

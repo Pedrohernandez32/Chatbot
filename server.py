@@ -4,7 +4,9 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import os
-from datetime import timedelta
+from datetime import timedelta, datetime
+from collections import defaultdict
+import html
 
 from database import (
     get_db, init_db,
@@ -24,6 +26,31 @@ CORS(app)
 
 # Load secret key from environment
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+# Rate limiting - simple in-memory implementation
+class RateLimiter:
+    def __init__(self, max_requests=30, window_seconds=60):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self.requests = defaultdict(list)
+
+    def is_allowed(self, client_id):
+        now = datetime.now()
+        # Limpiar requests antiguos
+        self.requests[client_id] = [
+            req_time for req_time in self.requests[client_id]
+            if (now - req_time).seconds < self.window_seconds
+        ]
+
+        if len(self.requests[client_id]) < self.max_requests:
+            self.requests[client_id].append(now)
+            return True
+        return False
+
+chat_limiter = RateLimiter(max_requests=30, window_seconds=60)  # 30 requests per minute
+
+def get_client_id():
+    return request.remote_addr or 'unknown'
 
 # Configure session settings for persistent login
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=30)
@@ -209,22 +236,44 @@ register_openai_plugin(bot)
 
 @app.route('/')
 def index():
-    return send_from_directory('static', 'index.html')
+    """Interfaz principal: nuevo diseño React"""
+    return send_from_directory('.', 'Asistente Virtual UdeMedellin.html')
 
+@app.route('/asistente')
+def asistente():
+    """Alias para compatibilidad - redirige a la página principal"""
+    return index()
 
 @app.route('/static/<path:filename>')
 def static_files(filename):
     return send_from_directory('static', filename)
 
+@app.route('/assets/<path:filename>')
+def assets_files(filename):
+    """Sirve imágenes y assets"""
+    return send_from_directory('assets', filename)
+
+@app.route('/<path:filename>')
+def serve_root_files(filename):
+    """Sirve archivos JSX y CSS desde la raíz"""
+    if filename.endswith(('.jsx', '.js', '.css', '.html')):
+        return send_from_directory('.', filename)
+    return send_from_directory('static', filename)
+
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
+    # 🔒 Rate limiting
+    client_id = get_client_id()
+    if not chat_limiter.is_allowed(client_id):
+        return jsonify({'error': 'Demasiadas solicitudes. Intenta de nuevo en unos momentos.'}), 429
+
     try:
         data = request.get_json()
         message = data.get('message', '').strip()
 
-        if not message:
-            return jsonify({'error': 'Mensaje vacío'}), 400
+        if not message or len(message) > 1000:
+            return jsonify({'error': 'Mensaje inválido'}), 400
 
         user_id = current_user.id if current_user.is_authenticated else None
 
