@@ -6,7 +6,6 @@ import makeWASocket, {
 import fs from "fs";
 import path from "path";
 import pino from "pino";
-import qrcode from "qrcode";
 import { setConnectionState } from "../db";
 
 const logger = pino({ level: "silent" });
@@ -15,55 +14,96 @@ if (!fs.existsSync(authDir)) {
   fs.mkdirSync(authDir, { recursive: true });
 }
 
-const authPath = path.join(authDir, "auth_info.json");
+const credsPath = path.join(authDir, "creds.json");
 
 let socket: ReturnType<typeof makeWASocket> | null = null;
-let autoReconnectDelay = 0;
+let retryCount = 0;
 
-const loadAuthState = () => {
-  if (fs.existsSync(authPath)) {
+const loadOrCreateCreds = () => {
+  if (fs.existsSync(credsPath)) {
     try {
-      const data = JSON.parse(fs.readFileSync(authPath, "utf-8"));
-      return data;
-    } catch {
-      return null;
+      return JSON.parse(fs.readFileSync(credsPath, "utf-8"));
+    } catch (e) {
+      console.error("[Baileys] Error loading creds:", e);
     }
   }
-  return null;
+
+  return {
+    me: { id: "", name: "" },
+    noiseKey: undefined,
+    pairingEphemeralKeyPair: undefined,
+    signalIdentities: [],
+    signalKeyStore: {},
+    accountSettings: undefined,
+  };
 };
 
-const saveAuthState = (state: any) => {
-  fs.writeFileSync(authPath, JSON.stringify(state, null, 2));
+const saveCreds = (creds: any) => {
+  const state = { creds };
+  fs.writeFileSync(credsPath, JSON.stringify(state, null, 2));
 };
 
 export async function initializeSocket() {
-  console.log("[Baileys] Initializing socket...");
+  console.log("[Baileys] Inicializando socket...");
 
   if (socket) {
     try {
       socket.end(undefined as any);
+      await new Promise((r) => setTimeout(r, 500));
     } catch (e) {
-      console.error("[Baileys] Error closing previous socket:", e);
+      // ignore
     }
+    socket = null;
   }
 
   try {
-    const authState = loadAuthState();
+    const creds = loadOrCreateCreds();
 
     const sock = makeWASocket({
-      browser: Browsers.ubuntu("Desktop"),
-      auth: authState?.creds ? { creds: authState.creds } : undefined,
+      browser: ["Linux", "5.0.4", "4.19.128-microsoft-standard"],
+      auth: {
+        creds: creds,
+        keys: {
+          get: () => undefined,
+          set: () => {},
+          del: () => {},
+        },
+      },
       logger,
-      printQRInTerminal: true,
-    }) as ReturnType<typeof makeWASocket>;
+      patchMessageBeforeSending: (message) => {
+        const requiresPatch = !!(
+          message.buttonsMessage
+          || message.templateMessage
+          || message.listMessage
+        );
+        if (requiresPatch) {
+          message = {
+            viewOnceMessage: {
+              message: {
+                messageContextInfo: {
+                  deviceListMetadata: {},
+                  deviceListMetadataVersion: 2,
+                },
+                ...message,
+              },
+            },
+          };
+        }
+        return message;
+      },
+    }) as any;
 
     sock.ev.on("connection.update", async (update) => {
       const { connection, lastDisconnect, qr } = update;
 
       if (qr) {
-        console.log("\n[Baileys] ====== QR CODE ======");
+        console.log("\n╔════════════════════════════════════════╗");
+        console.log("║  📱 ESCANEA CON WHATSAPP 📱          ║");
+        console.log("║  Abre WhatsApp > Más > Vincular      ║");
+        console.log("╚════════════════════════════════════════╝\n");
         console.log(qr);
-        console.log("[Baileys] ====== Scan with WhatsApp ======\n");
+        console.log("\n");
+        retryCount = 0;
         setConnectionState({
           status: "qr",
           qr_string: qr,
@@ -71,59 +111,67 @@ export async function initializeSocket() {
       }
 
       if (connection === "connecting") {
-        console.log("[Baileys] Connecting...");
+        console.log("[Baileys] ⏳ Conectando...");
         setConnectionState({ status: "connecting" });
-        autoReconnectDelay = 0;
       }
 
       if (connection === "open") {
-        console.log("[Baileys] ✓ Connected successfully!");
+        console.log("[Baileys] ✅ ¡Conectado! Listo para recibir mensajes.");
         const phone = sock.user?.id?.split(":")?.[0];
         setConnectionState({
           status: "connected",
           phone: phone || null,
           qr_string: null,
         });
-        autoReconnectDelay = 0;
+        retryCount = 0;
       }
 
       if (connection === "close") {
         const reason = (lastDisconnect?.error as Boom)?.output?.statusCode;
-        console.log(`[Baileys] Connection closed. Reason: ${reason}`);
 
         if (reason === DisconnectReason.loggedOut) {
-          console.log("[Baileys] Logged out");
-          setConnectionState({ status: "disconnected" });
-        } else if (reason === 440) {
-          console.log("[Baileys] Code 440 - device logged out");
-          if (fs.existsSync(authPath)) {
-            fs.unlinkSync(authPath);
+          console.log("[Baileys] ❌ Sesión cerrada. Borra auth/ e intenta de nuevo.");
+          if (fs.existsSync(credsPath)) {
+            fs.unlinkSync(credsPath);
           }
-          autoReconnectDelay = 0;
+          setConnectionState({ status: "disconnected" });
+          retryCount = 0;
+        } else if (reason === 440) {
+          console.log("[Baileys] Code 440 - Dispositivo desvinculado");
+          if (fs.existsSync(credsPath)) {
+            fs.unlinkSync(credsPath);
+          }
+          retryCount = 0;
+          console.log("[Baileys] Reintentando en 5 segundos...");
           setTimeout(() => initializeSocket(), 5000);
-        } else if (reason) {
-          console.log(`[Baileys] Reconnecting due to error: ${reason}`);
-          autoReconnectDelay = Math.min(autoReconnectDelay + 1, 5);
-          setTimeout(() => initializeSocket(), 3000 * autoReconnectDelay);
         } else {
-          console.log("[Baileys] Reconnecting...");
-          setTimeout(() => initializeSocket(), 3000);
+          retryCount++;
+          if (retryCount < 5) {
+            const delay = 3000 + retryCount * 1000;
+            console.log(`[Baileys] Reconectando (intento ${retryCount}/5) en ${delay}ms...`);
+            setTimeout(() => initializeSocket(), delay);
+          } else {
+            console.log("[Baileys] Máximo de reintentos alcanzado. Manualmente reinicia el bot.");
+            setConnectionState({ status: "disconnected" });
+          }
         }
       }
     });
 
-    sock.ev.on("creds.update", async (creds) => {
-      const state = loadAuthState() || {};
-      state.creds = creds;
-      saveAuthState(state);
+    sock.ev.on("creds.update", (creds) => {
+      console.log("[Baileys] 💾 Actualizando credenciales...");
+      saveCreds(creds);
     });
 
     socket = sock;
     return sock;
   } catch (error) {
-    console.error("[Baileys] Error initializing socket:", error);
+    console.error("[Baileys] Error grave al inicializar socket:", error);
     setConnectionState({ status: "disconnected" });
-    setTimeout(() => initializeSocket(), 5000);
+    retryCount++;
+    if (retryCount < 5) {
+      setTimeout(() => initializeSocket(), 5000);
+    }
   }
 }
 
@@ -136,7 +184,7 @@ export async function disconnect() {
     try {
       socket.end(undefined as any);
     } catch (e) {
-      console.error("[Baileys] Error disconnecting:", e);
+      // ignore
     }
     socket = null;
     setConnectionState({ status: "disconnected" });
@@ -144,9 +192,9 @@ export async function disconnect() {
 }
 
 export function clearAuth() {
-  if (fs.existsSync(authPath)) {
-    fs.unlinkSync(authPath);
+  if (fs.existsSync(credsPath)) {
+    fs.unlinkSync(credsPath);
   }
+  console.log("[Baileys] Credenciales eliminadas. Reinicia el bot.");
   setConnectionState({ status: "disconnected", qr_string: null, phone: null });
-  console.log("[Baileys] Auth cleared");
 }
