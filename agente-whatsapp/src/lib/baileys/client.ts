@@ -1,12 +1,8 @@
 import { Boom } from "@hapi/boom";
 import makeWASocket, {
-  AuthenticationCreds,
-  AuthenticationState,
   Browsers,
   DisconnectReason,
-  proto,
 } from "@whiskeysockets/baileys";
-import { randomBytes } from "crypto";
 import fs from "fs";
 import path from "path";
 import pino from "pino";
@@ -24,125 +20,111 @@ const authPath = path.join(authDir, "auth_info.json");
 let socket: ReturnType<typeof makeWASocket> | null = null;
 let autoReconnectDelay = 0;
 
-const useAuthState = (): { state: AuthenticationState; saveCreds: () => void } => {
-  let creds: AuthenticationCreds | null = null;
-  let keys: Record<string, string> = {};
-
-  const saveCreds = () => {
-    if (!creds) return;
-    fs.writeFileSync(authPath, JSON.stringify({ creds, keys }, null, 2));
-  };
-
+const loadAuthState = () => {
   if (fs.existsSync(authPath)) {
-    const data = JSON.parse(fs.readFileSync(authPath, "utf-8"));
-    creds = data.creds;
-    keys = data.keys;
+    try {
+      const data = JSON.parse(fs.readFileSync(authPath, "utf-8"));
+      return data;
+    } catch {
+      return null;
+    }
   }
-
-  return {
-    state: {
-      creds: creds || {
-        me: { id: "", name: "" },
-        registered: false,
-        platform: "web",
-      },
-      keys: new Map(Object.entries(keys)),
-    } as any,
-    saveCreds,
-  };
+  return null;
 };
 
-const fetchLatestBaileysVersion = async (): Promise<[number, number, number]> => {
-  return [2, 2400, 1];
+const saveAuthState = (state: any) => {
+  fs.writeFileSync(authPath, JSON.stringify(state, null, 2));
 };
 
 export async function initializeSocket() {
   console.log("[Baileys] Initializing socket...");
 
   if (socket) {
-    socket.end(undefined as any);
+    try {
+      socket.end(undefined as any);
+    } catch (e) {
+      console.error("[Baileys] Error closing previous socket:", e);
+    }
   }
 
-  const { state, saveCreds } = useAuthState();
-  const version = await fetchLatestBaileysVersion();
+  try {
+    const authState = loadAuthState();
 
-  const sock = makeWASocket({
-    version,
-    logger,
-    browser: Browsers.macOS("Desktop"),
-    auth: state,
-    getMessage: async (key) => {
-      return {
-        conversation: "",
-      };
-    },
-  }) as ReturnType<typeof makeWASocket>;
+    const sock = makeWASocket({
+      browser: Browsers.ubuntu("Desktop"),
+      auth: authState?.creds ? { creds: authState.creds } : undefined,
+      logger,
+      printQRInTerminal: true,
+    }) as ReturnType<typeof makeWASocket>;
 
-  sock.ev.on("creds.update", saveCreds);
+    sock.ev.on("connection.update", async (update) => {
+      const { connection, lastDisconnect, qr } = update;
 
-  sock.ev.on("connection.update", async (update) => {
-    const { connection, lastDisconnect, qr } = update;
+      if (qr) {
+        console.log("\n[Baileys] ====== QR CODE ======");
+        console.log(qr);
+        console.log("[Baileys] ====== Scan with WhatsApp ======\n");
+        setConnectionState({
+          status: "qr",
+          qr_string: qr,
+        });
+      }
 
-    if (qr) {
-      console.log("[Baileys] QR Code generated");
-      const qrUrl = await qrcode.toDataURL(qr);
-      setConnectionState({
-        status: "qr",
-        qr_string: qr,
-      });
-      console.log("[Baileys] QR saved to DB");
-    }
+      if (connection === "connecting") {
+        console.log("[Baileys] Connecting...");
+        setConnectionState({ status: "connecting" });
+        autoReconnectDelay = 0;
+      }
 
-    if (connection === "connecting") {
-      console.log("[Baileys] Connecting...");
-      setConnectionState({ status: "connecting" });
-      autoReconnectDelay = 0;
-    }
+      if (connection === "open") {
+        console.log("[Baileys] ✓ Connected successfully!");
+        const phone = sock.user?.id?.split(":")?.[0];
+        setConnectionState({
+          status: "connected",
+          phone: phone || null,
+          qr_string: null,
+        });
+        autoReconnectDelay = 0;
+      }
 
-    if (connection === "open") {
-      console.log("[Baileys] Connected!");
-      const phone = sock.user?.id?.split(":")?.[0];
-      setConnectionState({
-        status: "connected",
-        phone: phone || null,
-        qr_string: null,
-      });
-      autoReconnectDelay = 0;
-    }
+      if (connection === "close") {
+        const reason = (lastDisconnect?.error as Boom)?.output?.statusCode;
+        console.log(`[Baileys] Connection closed. Reason: ${reason}`);
 
-    if (connection === "close") {
-      const reason = (lastDisconnect?.error as Boom)?.output?.statusCode;
-      const shouldReconnect = reason !== DisconnectReason.loggedOut;
-
-      if (shouldReconnect) {
-        // Handle code 440 (device logged out) with backoff
-        if (reason === 440) {
-          console.log("[Baileys] Code 440 - device logged out, clearing auth and restarting...");
+        if (reason === DisconnectReason.loggedOut) {
+          console.log("[Baileys] Logged out");
+          setConnectionState({ status: "disconnected" });
+        } else if (reason === 440) {
+          console.log("[Baileys] Code 440 - device logged out");
           if (fs.existsSync(authPath)) {
             fs.unlinkSync(authPath);
           }
-          autoReconnectDelay = Math.min(autoReconnectDelay + 1, 10);
-          const delay = 15 * 1000 * autoReconnectDelay;
-          console.log(`[Baileys] Reconnecting in ${delay}ms...`);
-          setTimeout(() => {
-            initializeSocket();
-          }, delay);
-        } else {
-          console.log(`[Baileys] Reconnecting due to: ${reason}`);
+          autoReconnectDelay = 0;
+          setTimeout(() => initializeSocket(), 5000);
+        } else if (reason) {
+          console.log(`[Baileys] Reconnecting due to error: ${reason}`);
           autoReconnectDelay = Math.min(autoReconnectDelay + 1, 5);
-          setTimeout(() => {
-            initializeSocket();
-          }, 3000 * autoReconnectDelay);
+          setTimeout(() => initializeSocket(), 3000 * autoReconnectDelay);
+        } else {
+          console.log("[Baileys] Reconnecting...");
+          setTimeout(() => initializeSocket(), 3000);
         }
-      } else {
-        console.log("[Baileys] Logged out - waiting for manual reconnection");
-        setConnectionState({ status: "disconnected" });
       }
-    }
-  });
+    });
 
-  socket = sock;
-  return sock;
+    sock.ev.on("creds.update", async (creds) => {
+      const state = loadAuthState() || {};
+      state.creds = creds;
+      saveAuthState(state);
+    });
+
+    socket = sock;
+    return sock;
+  } catch (error) {
+    console.error("[Baileys] Error initializing socket:", error);
+    setConnectionState({ status: "disconnected" });
+    setTimeout(() => initializeSocket(), 5000);
+  }
 }
 
 export function getSocket() {
@@ -151,7 +133,11 @@ export function getSocket() {
 
 export async function disconnect() {
   if (socket) {
-    socket.end(undefined as any);
+    try {
+      socket.end(undefined as any);
+    } catch (e) {
+      console.error("[Baileys] Error disconnecting:", e);
+    }
     socket = null;
     setConnectionState({ status: "disconnected" });
   }
@@ -162,4 +148,5 @@ export function clearAuth() {
     fs.unlinkSync(authPath);
   }
   setConnectionState({ status: "disconnected", qr_string: null, phone: null });
+  console.log("[Baileys] Auth cleared");
 }
