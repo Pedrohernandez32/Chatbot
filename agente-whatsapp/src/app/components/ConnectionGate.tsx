@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import QRScreen from "./QRScreen";
 import DashboardHeader from "./DashboardHeader";
 import ConversationList from "./ConversationList";
+import TestPanel from "./TestPanel";
 
 interface ConnectionStatus {
   status: "disconnected" | "qr" | "connecting" | "connected";
@@ -44,7 +45,14 @@ export default function ConnectionGate() {
   }
 
   if (connStatus.status === "disconnected" || connStatus.status === "qr") {
-    return <QRScreen />;
+    return (
+      <div>
+        <QRScreen />
+        <div className="p-6 bg-gray-50">
+          <TestPanel />
+        </div>
+      </div>
+    );
   }
 
   if (connStatus.status === "connecting") {
