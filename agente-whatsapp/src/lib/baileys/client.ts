@@ -1,8 +1,16 @@
 import { Boom } from "@hapi/boom";
 import makeWASocket, {
+  AuthenticationCreds,
+  AuthenticationState,
   Browsers,
+  BufferJSON,
   DisconnectReason,
-  fetchLatestBaileysVersion,
+  isJidBroadcast,
+  isJidStatusBroadcast,
+  makeCacheableSignalKeyStore,
+  makeInMemoryStore,
+  proto,
+  useMultiFileAuthState,
 } from "@whiskeysockets/baileys";
 import fs from "fs";
 import path from "path";
@@ -12,55 +20,19 @@ import { setConnectionState } from "../db";
 const logger = pino({ level: "silent" });
 
 const authDir = path.resolve(process.cwd(), "auth");
-if (!fs.existsSync(authDir)) {
-  fs.mkdirSync(authDir, { recursive: true });
-}
-
-const credsPath = path.join(authDir, "creds.json");
-const keysPath = path.join(authDir, "keys.json");
 
 let socket: ReturnType<typeof makeWASocket> | null = null;
 let retryCount = 0;
-let qrShown = false;
-
-const loadCreds = () => {
-  try {
-    if (fs.existsSync(credsPath)) {
-      return JSON.parse(fs.readFileSync(credsPath, "utf-8"));
-    }
-  } catch (e) {
-    console.log("[Baileys] No se pudieron cargar credenciales previas");
-  }
-  return null;
-};
-
-const saveCreds = (creds: any) => {
-  fs.writeFileSync(credsPath, JSON.stringify(creds, null, 2));
-};
-
-const loadKeys = () => {
-  try {
-    if (fs.existsSync(keysPath)) {
-      const data = JSON.parse(fs.readFileSync(keysPath, "utf-8"));
-      return new Map(data);
-    }
-  } catch {
-    // ignore
-  }
-  return new Map();
-};
-
-const saveKeys = (keys: Map<string, any>) => {
-  fs.writeFileSync(keysPath, JSON.stringify(Array.from(keys.entries())));
-};
+let connectionAttempts = 0;
 
 export async function initializeSocket() {
-  console.log("[Baileys] 🔄 Conectando a WhatsApp Web...");
+  connectionAttempts++;
+  console.log(`[Baileys] 🔄 Intento ${connectionAttempts} de conexión a WhatsApp...`);
 
   if (socket) {
     try {
-      socket.ws?.close?.();
-      socket.end?.();
+      socket.ws?.close();
+      socket.end();
     } catch (e) {
       // ignore
     }
@@ -68,124 +40,151 @@ export async function initializeSocket() {
   }
 
   try {
-    const creds = loadCreds();
-    const keys = loadKeys();
+    // Usar el sistema de autenticación multi-archivo de Baileys
+    const { state, saveCreds } = await useMultiFileAuthState(authDir);
 
-    console.log("[Baileys] Usando", creds ? "credenciales guardadas" : "NUEVO QR");
+    console.log("[Baileys] Usando sistema de autenticación multi-archivo");
 
     const sock = makeWASocket({
-      version: await fetchLatestBaileysVersion(),
-      auth: {
-        creds:
-          creds ||
-          {
-            me: { id: "" },
-            noiseKey: null,
-            signalIdentities: [],
-            signalKeyStore: {},
-            registrationId: 0,
-            advSecretKey: "",
-            processedHistoryMessages: [],
-            nextPreKeyId: 1,
-            firstUnuploadedPreKeyId: 1,
-            accountSyncCounter: 0,
-            accountSettings: { unarchiveChats: false },
-            deviceName: "WhatsApp",
-            phoneNumber: "",
-            platform: "web",
-          },
-        keys,
-      },
-      browser: Browsers.ubuntu("Desktop"),
+      auth: state,
       logger,
-      connectTimeoutMs: 60000,
+      browser: Browsers.ubuntu("Desktop"),
+      generateHighQualityLinkPreview: false,
+      shouldSyncHistoryMessage: () => false,
+      markOnlineOnConnect: false,
       defaultQueryTimeoutMs: 0,
+      retryRequestDelayMs: 100,
+      maxMsToWaitForConnection: 30000,
+      emitOwnEventsOnly: false,
+      linkPreviewImageThumbnailWidth: 192,
+      transactionTimeout: 40000,
       keepAliveIntervalMs: 30000,
       qrTimeout: 60000,
-      emitOwnEvents: false,
-      generateHighQualityLinkPreview: false,
     });
 
-    // QR
-    sock.ev.on("connection.update", (update) => {
-      const { connection, lastDisconnect, qr } = update;
+    // Guardar credenciales cada vez que se actualicen
+    sock.ev.on("creds.update", saveCreds);
 
-      if (qr && !qrShown) {
-        qrShown = true;
-        console.log("\n");
-        console.log("╔════════════════════════════════════════╗");
-        console.log("║  📱 ESCANEA ESTE QR CON WHATSAPP 📱   ║");
-        console.log("║ Más opciones > Vincular un dispositivo ║");
-        console.log("╚════════════════════════════════════════╝\n");
+    // Manejo de conexión
+    sock.ev.on("connection.update", async (update) => {
+      const { connection, lastDisconnect, qr, isNewLogin } = update;
+
+      console.log("[Baileys] Estado:", { connection, hasQR: !!qr, isNewLogin });
+
+      // QR Code
+      if (qr) {
+        console.log("\n╔═══════════════════════════════════════════════════╗");
+        console.log("║        📱 ESCANEA CON WHATSAPP - QR CODE 📱       ║");
+        console.log("║  WhatsApp > Más opciones > Vincular un dispositivo ║");
+        console.log("╚═══════════════════════════════════════════════════╝\n");
         console.log(qr);
         console.log("\n");
+
+        connectionAttempts = 0;
         retryCount = 0;
-        setConnectionState({ status: "qr", qr_string: qr });
+        setConnectionState({
+          status: "qr",
+          qr_string: qr,
+        });
       }
 
+      // Conectando
       if (connection === "connecting") {
-        console.log("[Baileys] ⏳ Conectando...");
+        console.log("[Baileys] ⏳ Conectando a WebSocket de WhatsApp...");
         setConnectionState({ status: "connecting" });
       }
 
+      // Conectado
       if (connection === "open") {
-        console.log("[Baileys] ✅ CONECTADO!");
-        console.log(`[Baileys] Tu número: ${sock.user?.id}`);
-        qrShown = false;
+        console.log("[Baileys] ✅ ¡CONECTADO EXITOSAMENTE!");
+        console.log(`[Baileys] Tu número WhatsApp: ${sock.user?.id}`);
+
+        connectionAttempts = 0;
         retryCount = 0;
+
         setConnectionState({
           status: "connected",
           phone: sock.user?.id?.split(":")?.[0] || null,
           qr_string: null,
         });
+
+        // Escuchar mensajes entrantes
+        sock.ev.on("messages.upsert", async (m) => {
+          for (const msg of m.messages) {
+            // Solo procesar mensajes que no sean nuestros
+            if (!msg.key.fromMe) {
+              const remoteJid = msg.key.remoteJid;
+
+              // Ignorar broadcasts y estados
+              if (isJidBroadcast(remoteJid!) || isJidStatusBroadcast(remoteJid!)) {
+                continue;
+              }
+
+              const text = msg.message?.conversation ||
+                msg.message?.extendedTextMessage?.text ||
+                "";
+
+              if (text) {
+                const from = remoteJid?.split("@")?.[0];
+                console.log(`[Baileys] 📨 Mensaje de ${from}: ${text.substring(0, 50)}`);
+
+                // Importar y usar handler
+                try {
+                  const { handleIncomingMessage } = await import("./handler");
+                  await handleIncomingMessage(msg);
+                } catch (error) {
+                  console.error("[Baileys] Error procesando mensaje:", error);
+                }
+              }
+            }
+          }
+        });
       }
 
+      // Desconectado
       if (connection === "close") {
         const reason = (lastDisconnect?.error as Boom)?.output?.statusCode;
-        console.log(
-          `[Baileys] ❌ Desconectado${reason ? ` (${reason})` : ""}`
-        );
+        console.log(`[Baileys] ❌ Desconectado${reason ? ` (código: ${reason})` : ""}`);
 
         if (reason === DisconnectReason.loggedOut) {
-          console.log("[Baileys] Sesión cerrada manualmente");
+          console.log("[Baileys] Sesión finalizada por el usuario");
           fs.rmSync(authDir, { recursive: true, force: true });
           setConnectionState({ status: "disconnected" });
         } else {
+          // Reintentar reconexión
           retryCount++;
-          if (retryCount <= 20) {
-            const delay = 2000 + retryCount * 500;
-            console.log(`[Baileys] Reintentando en ${delay}ms (${retryCount}/20)`);
-            setTimeout(() => initializeSocket(), delay);
+          if (retryCount < 30) {
+            const delay = Math.min(2000 + retryCount * 1000, 60000);
+            console.log(
+              `[Baileys] 🔄 Reconectando en ${(delay / 1000).toFixed(0)}s (intento ${retryCount}/30)...`
+            );
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            await initializeSocket();
           } else {
-            console.log("[Baileys] Máximo de intentos. Reinicia el bot.");
+            console.log("[Baileys] ❌ Máximo de intentos de reconexión alcanzado");
             setConnectionState({ status: "disconnected" });
           }
         }
       }
     });
 
-    sock.ev.on("creds.update", saveCreds);
-    sock.ev.on("keys.update", (keys) => {
-      const current = loadKeys();
-      for (const [key, val] of Object.entries(keys)) {
-        if (val) current.set(key, val);
-      }
-      saveKeys(current);
-    });
-
     socket = sock;
-    console.log("[Baileys] ✓ Socket creado - aguardando conexión WebSocket...");
-
-    // Dar tiempo para que se conecte el WebSocket
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
+    console.log("[Baileys] ✓ Socket creado correctamente");
     return sock;
   } catch (error) {
-    console.error("[Baileys] Error:", error);
+    console.error("[Baileys] Error fatal:", error);
     setConnectionState({ status: "disconnected" });
-    retryCount++;
-    if (retryCount <= 20) {
-      setTimeout(() => initializeSocket(), 5000);
+
+    connectionAttempts++;
+    if (connectionAttempts < 20) {
+      const delay = 5000 + Math.random() * 5000;
+      console.log(
+        `[Baileys] Reintentando en ${(delay / 1000).toFixed(0)}s (${connectionAttempts}/20)...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      await initializeSocket();
+    } else {
+      console.log("[Baileys] No se pudo conectar después de 20 intentos");
     }
   }
 }
@@ -197,21 +196,24 @@ export function getSocket() {
 export async function disconnect() {
   if (socket) {
     try {
-      socket.end?.();
+      socket.end();
     } catch (e) {
       // ignore
     }
     socket = null;
   }
   setConnectionState({ status: "disconnected" });
+  console.log("[Baileys] Desconectado");
 }
 
-export function clearAuth() {
+export async function clearAuth() {
   try {
-    fs.rmSync(authDir, { recursive: true, force: true });
-  } catch {
+    if (fs.existsSync(authDir)) {
+      fs.rmSync(authDir, { recursive: true, force: true });
+    }
+  } catch (e) {
     // ignore
   }
-  console.log("[Baileys] Auth borrado. Reinicia para nuevo QR.");
+  console.log("[Baileys] Credenciales eliminadas. Reinicia para nuevo QR.");
   setConnectionState({ status: "disconnected", qr_string: null, phone: null });
 }
