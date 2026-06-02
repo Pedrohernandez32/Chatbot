@@ -1,0 +1,17 @@
+[phases.setup]
+cmds = [
+  "npm install --frozen-lockfile",
+]
+
+[phases.build]
+cmds = [
+  "npm run build",
+]
+
+[start]
+run = """
+npm run start:all
+"""
+
+[variables]
+NODE_ENV = "production"
