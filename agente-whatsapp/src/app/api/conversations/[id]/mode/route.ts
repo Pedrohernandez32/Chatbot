@@ -2,10 +2,11 @@ import { setMode, getConversationById } from "@/lib/db";
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const convId = parseInt(params.id);
+    const { id } = await params;
+    const convId = parseInt(id);
     const body = (await request.json()) as { mode: "AI" | "HUMAN" };
 
     if (!body.mode || !["AI", "HUMAN"].includes(body.mode)) {

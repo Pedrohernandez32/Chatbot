@@ -2,10 +2,11 @@ import { getMessages, insertMessage, getConversationById } from "@/lib/db";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const convId = parseInt(params.id);
+    const { id } = await params;
+    const convId = parseInt(id);
     const convo = getConversationById(convId);
 
     if (!convo) {
@@ -27,10 +28,11 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const convId = parseInt(params.id);
+    const { id } = await params;
+    const convId = parseInt(id);
     const body = (await request.json()) as {
       role: "user" | "assistant" | "human";
       content: string;

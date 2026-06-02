@@ -4,9 +4,7 @@ import makeWASocket, {
   AuthenticationState,
   Browsers,
   DisconnectReason,
-  MessageRetryMap,
   proto,
-  SignalAuthStateStore,
 } from "@whiskeysockets/baileys";
 import { randomBytes } from "crypto";
 import fs from "fs";
@@ -54,18 +52,15 @@ const useAuthState = (): { state: AuthenticationState; saveCreds: () => void } =
   };
 };
 
-const fetchLatestBaileysVersion = async () => {
-  return {
-    version: [2, 2400, 1],
-    isLatest: true,
-  };
+const fetchLatestBaileysVersion = async (): Promise<[number, number, number]> => {
+  return [2, 2400, 1];
 };
 
 export async function initializeSocket() {
   console.log("[Baileys] Initializing socket...");
 
   if (socket) {
-    socket.end();
+    socket.end(undefined as any);
   }
 
   const { state, saveCreds } = useAuthState();
@@ -156,7 +151,7 @@ export function getSocket() {
 
 export async function disconnect() {
   if (socket) {
-    socket.end();
+    socket.end(undefined as any);
     socket = null;
     setConnectionState({ status: "disconnected" });
   }

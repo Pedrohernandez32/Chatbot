@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import QRCode from "qrcode.react";
 
 interface QRState {
-  qr_string: string | null;
+  hasQr: boolean;
   status: string;
 }
 
@@ -15,14 +14,8 @@ export default function QRScreen() {
     const checkQR = async () => {
       try {
         const res = await fetch("/api/status");
-        const data = (await res.json()) as { hasQr: boolean; qr_string?: string };
-
-        // Note: QR string is not exposed via API for security
-        // This is just for visual feedback
-        setQrState({
-          qr_string: data.hasQr ? "qr-pending" : null,
-          status: data.status,
-        });
+        const data = (await res.json()) as { hasQr: boolean; status: string };
+        setQrState(data);
       } catch (error) {
         console.error("Error checking QR:", error);
       }
@@ -44,25 +37,27 @@ export default function QRScreen() {
         </p>
 
         <div className="bg-white rounded-lg shadow-lg p-8 mb-6 inline-block">
-          {qrState?.qr_string ? (
+          {qrState?.hasQr ? (
             <div className="flex justify-center items-center h-64 w-64 bg-gray-100 rounded-lg">
               <div className="text-center">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
                 <p className="mt-4 text-sm text-gray-600">
-                  Generando código QR...
+                  Abre tu terminal para ver el QR
                 </p>
               </div>
             </div>
           ) : (
-            <div className="text-gray-500 text-sm">
-              Esperando QR...
+            <div className="flex justify-center items-center h-64 w-64 bg-gray-50 rounded-lg">
+              <div className="text-center">
+                <p className="text-gray-500 text-sm">Iniciando bot...</p>
+              </div>
             </div>
           )}
         </div>
 
         <div className="text-sm text-gray-500 space-y-2">
           <p>📱 Mantén tu teléfono cerca</p>
-          <p>🔐 Tu código es privado y único</p>
+          <p>🖥️ El QR se mostrará en la terminal del bot</p>
           <p>⏱️ Válido por 60 segundos</p>
         </div>
       </div>

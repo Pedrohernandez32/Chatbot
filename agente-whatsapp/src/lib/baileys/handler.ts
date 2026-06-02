@@ -31,7 +31,7 @@ export async function handleIncomingMessage(
     console.log(`[Handler] Message from ${phoneNumber}: ${textContent}`);
 
     // Get or create conversation
-    const convo = getOrCreateConversation(phoneNumber, pushName);
+    const convo = getOrCreateConversation(phoneNumber, pushName || undefined);
 
     // Store user message
     insertMessage(convo.id, "user", textContent);

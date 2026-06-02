@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
+import type BetterSqlite3 from "better-sqlite3";
 
 const dataDir = path.resolve(process.cwd(), "data");
 if (!fs.existsSync(dataDir)) {
@@ -8,7 +9,7 @@ if (!fs.existsSync(dataDir)) {
 }
 
 const dbPath = path.join(dataDir, "messages.db");
-const db = new Database(dbPath);
+const db: BetterSqlite3.Database = new Database(dbPath);
 
 // Enable WAL mode for concurrency
 db.pragma("journal_mode = WAL");
