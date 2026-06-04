@@ -14,9 +14,7 @@ import logging
 
 # Plugins
 import info_plugin
-import portal_plugin
 import ai_plugin
-import rag_plugin
 import ollama_plugin
 import openai_plugin
 import tool_plugin
