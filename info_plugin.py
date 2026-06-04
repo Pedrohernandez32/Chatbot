@@ -306,6 +306,18 @@ RESPUESTAS = {
         'corto': "📋 Requerimos diploma de bachiller y prueba de admisión. Consulta carreras específicas para requisitos adicionales.",
         'expandido': "**REQUISITOS DE ADMISIÓN**\n\n**REQUISITOS GENERALES**\n- Diploma de Bachiller acreditado\n- Cédula de Ciudadanía o Pasaporte\n- Prueba de Admisión (sedes UdeM)\n\n**DOCUMENTOS A PRESENTAR**\n- Fotocopia del diploma de bachiller\n- Fotocopia del documento de identidad\n- 2 fotos 3x4 a color\n- Formulario de solicitud (se proporciona)\n\n**REQUISITOS POR PROGRAMA**\n- Algunos programas requieren entrevista\n- Ingeniería: Énfasis en matemáticas\n- Diseño: Portafolio de trabajo\n- Psicología: Entrevista personal\n\n**FECHAS**\nProceso continuo. Consulta www.udemedellin.edu.co para próximas cohortes"
     },
+    'matriculas': {
+        'corto': "🎓 **COSTOS DE MATRÍCULA 2026 (Semestre)**\n💰 Económicas y Admin: $3.472k-$11.842k\n💰 Comunicación: $3.718k-$12.085k\n💰 Ingenierías: $3.718k-$12.085k\n💰 Derecho: $3.502k-$11.950k\n💰 Diseño: $3.718k-$12.085k\n\nVaría por escala (1-6).",
+        'expandido': "**COSTOS DE MATRÍCULA PREGRADO 2026**\n\nPOR FACULTAD (Semestre completo)\n\nCI. ECONÓMICAS Y ADMINISTRATIVAS\n$3.472.000 - $11.842.000\nAdministración, Contaduría, Economía, Mercadeo, Negocios Internacionales\n\nCOMUNICACIÓN\n$3.718.000 - $12.085.000\nTodas las carreras\n\nINGENIERÍAS\n$3.718.000 - $12.085.000\nSistemas, Civil, Ambiental, Telecomunicaciones, Electrónica, Energía, Financiera, Industrial, Computación Científica\n\nDERECHO\n$3.502.000 - $11.950.000 (presencial)\nInvestigación Criminal Virtual: $4.464.000\n\nDISEÑO\n$3.718.000 - $12.085.000\nEspacios, Moda y Textil, Producto\n\nPROGRAMAS ESPECIALES\nFormación Tecnológica presencial: $4.525.000\nFormación Tecnológica virtual: $3.366.000\n\n**¿QUÉ ES LA ESCALA?**\nLa escala (1-6) depende de análisis socioeconómico al ingresar. Se MANTIENE durante toda tu carrera.\n\n**CALCULA TU ARANCEL**\nSimulador: app.udem.edu.co/SimuladorArancel\n\nOtros costos:\nInscripción nuevos: $228.000\n\nContacto: matriculas@udemedellin.edu.co"
+    },
+    'certificados': {
+        'corto': "📄 **Certificados:** Automáticos $24k-$92k (24-48h). Manuales $19k-$295k (3 días).",
+        'expandido': "**CERTIFICADOS ACADÉMICOS 2026**\n\nAUTOMÁTICOS (Portal en línea, 24-48 horas)\nAdmisión: $24.000\nMatrícula vigente: $24.000\nEstudios en curso: $24.000\nEgresado: $24.000\nCalificaciones concluidas: $92.000\n\nMANUALES (Secretaría, 3 días)\nPrograma/asignaturas: $19.000\nActa de grado: $24.000\nDiploma duplicado: $295.000\n\nPROCEDIMIENTO AUTOMÁTICO\n1. Accede a app.udem.edu.co/Certificados\n2. Selecciona tipo\n3. Pago PSE/Tarjeta\n4. Validación ~20 min\n5. Enviado por correo\n\nContacto: certificados@udemedellin.edu.co"
+    },
+    'grados': {
+        'corto': "🎓 **Grados 2026:** Ceremonia $1.075.000 | Privada $2.029.000 | Sin ceremonia $537.000",
+        'expandido': "**PROCESO DE GRADO 2026**\n\nCOSTOS\nCeremonia colectiva: $1.075.000\nCeremonia privada: $2.029.000\nSin ceremonia: $537.000\n\nREQUISITOS\n- Créditos completados\n- GPA mínimo 2.0\n- Pago de arancel\n- Sin deudas pendientes\n\nPROCEDIMIENTO\n1. Solicita constancia de egreso\n2. Verifica requisitos\n3. Realiza pago\n4. Completa formulario\n5. Elige modalidad\n6. Confirma asistencia\n\nFECHAS\nCeremonias semestrales: Mayo y Noviembre\n\nContacto: Secretaría Académica ext. 5200\nacademica@udemedellin.edu.co"
+    },
 }
 
 BECAS_DETALLADAS = {
@@ -389,6 +401,9 @@ KEYWORDS_MAP = {
     'inscripcion': ['inscrip', 'registr', 'matricul', 'inscribir', 'registro', 'enroll', 'cómo me inscribo', 'como me inscribo', 'proceso de inscripción', 'proceso de inscripcion'],
     'admisiones': ['admision', 'admisión', 'requisito', 'titulo', 'diploma', 'ingreso', 'requisitos', 'qué necesito', 'que necesito'],
     'campus': ['campus', 'instalaciones', 'infraestructura', 'laboratorio', 'laboratorios', 'facilities', 'edificios', 'moderno', 'tecnología', 'tecnologia', 'gym', 'gimnasio', 'piscina'],
+    'matriculas': ['matricula', 'matriculation', 'prematricula', 'costo', 'precio', 'arancel', 'escala', 'cuanto cuesta', 'cuanto vale'],
+    'certificados': ['certificado', 'certificados', 'constancia', 'acta de grado', 'copia', 'duplicado', 'documento academico'],
+    'grados': ['grado', 'grados', 'graduacion', 'ceremonia', 'egreso', 'titulo electronico', 'acto de graduacion'],
 }
 
 def obtener_facultad_carrera(carrera_nombre: str) -> Optional[dict]:
@@ -496,20 +511,33 @@ def buscar_categoria(prompt: str) -> Optional[dict]:
     # Detectar si pide más información o detalles
     pide_mas_info = any(kw in p_normalizado for kw in ['mas informacion', 'cuentame mas', 'detalles', 'detalle', 'especifico', 'todo sobre', 'informacion completa', 'saber mas', 'ampliacion', 'ampliado'])
 
+    # Prioridad de categorías: específicas primero, genéricas después
+    categoria_prioridad = ['matriculas', 'certificados', 'grados', 'becas', 'admisiones', 'inscripcion', 'contacto', 'horario', 'biblioteca', 'campus']
+
+    # Buscar todas las coincidencias
+    encontradas = {}
     for categoria, keywords in KEYWORDS_MAP.items():
         for kw in keywords:
             kw_normalizado = normalizar_texto(kw)
             if kw_normalizado in p_normalizado:
-                if categoria in RESPUESTAS:
-                    # Si pide "más información" o pregunta específica, devolver expandido
-                    usar_expandido = pide_mas_info or any(normalizar_texto(k) in p_normalizado for k in ['cuentame', 'quiero', 'quiero saber'])
-                    texto = RESPUESTAS[categoria]['expandido'] if usar_expandido else RESPUESTAS[categoria]['corto']
+                if categoria not in encontradas:
+                    encontradas[categoria] = 0
+                encontradas[categoria] += 1
 
-                    return {
-                        'text': texto,
-                        'category': categoria,
-                        'has_more': not usar_expandido
-                    }
+    # Si se encontró alguna categoría, seleccionar la de mayor prioridad
+    if encontradas:
+        for cat_prioridad in categoria_prioridad:
+            if cat_prioridad in encontradas and cat_prioridad in RESPUESTAS:
+                categoria = cat_prioridad
+                usar_expandido = pide_mas_info or any(normalizar_texto(k) in p_normalizado for k in ['cuentame', 'quiero', 'quiero saber'])
+                texto = RESPUESTAS[categoria]['expandido'] if usar_expandido else RESPUESTAS[categoria]['corto']
+
+                return {
+                    'text': texto,
+                    'category': categoria,
+                    'has_more': not usar_expandido
+                }
+
     return None
 
 def buscar_beca(prompt: str) -> Optional[dict]:
@@ -726,6 +754,19 @@ def info_handler(prompt: str) -> Optional[str]:
     calidad_resp = buscar_calidad(prompt)
     if calidad_resp:
         return json.dumps(calidad_resp, ensure_ascii=False)
+
+    # Prioridad 3.5: Si pregunta sobre COSTO/PRECIO/MATRICULA, hacer buscar_categoria primero
+    palabras_costo = ['precio', 'costo', 'cuesta', 'arancel', 'matricula', 'certificado', 'grado', 'ceremonia', 'cuanto', 'valor']
+    if any(kw in p_norm for kw in palabras_costo):
+        categoria_resp = buscar_categoria(prompt)
+        if categoria_resp:
+            # Si pregunta sobre precio, SIEMPRE mostrar versión expandida con detalles
+            if categoria_resp.get('category') in ['matriculas', 'certificados', 'grados']:
+                categoria = categoria_resp['category']
+                if categoria in RESPUESTAS:
+                    categoria_resp['text'] = RESPUESTAS[categoria]['expandido']
+                    categoria_resp['has_more'] = False
+            return json.dumps(categoria_resp, ensure_ascii=False)
 
     # Prioridad 4: Búsqueda de carrera (incluyendo ingenierías como grupo)
     carrera_resp = buscar_carrera(prompt)

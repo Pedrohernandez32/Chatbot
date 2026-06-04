@@ -126,20 +126,20 @@ class Bot:
 bot = Bot()
 
 # Register Plugins in order of priority
-# 1. Institutional info (from app.py SYSTEM_PROMPT)
-info_plugin.register(bot)
-# 1.5 Portal scraper (fetch official site)
-portal_plugin.register(bot)
-# 2. Semantic FAQ
-ai_plugin.register(bot)
-# 3. Knowledge Base (Official docs)
-rag_plugin.register(bot)
-# 4. Local LLM
-ollama_plugin.register(bot)
-# 5. Cloud LLM (Fallback)
+# 1. Cloud LLM (OpenRouter - IA primero)
 openai_plugin.register(bot)
-# 6. Utilities
+# 2. Institutional info (respuestas predefinidas si IA no sabe)
+info_plugin.register(bot)
+# 3. Semantic FAQ
+ai_plugin.register(bot)
+# 4. Local LLM (Ollama)
+ollama_plugin.register(bot)
+# 5. Utilities
 tool_plugin.register(bot)
+
+# DESACTIVADOS:
+# - portal_plugin: Information cruda del sitio
+# - rag_plugin: Knowledge base con respuestas desestructuradas
 
 # Configuración
 SYSTEM_PROMPT = """
@@ -191,6 +191,24 @@ BECAS Y ESTÍMULOS:
 - ESTÍMULO MULTILINGÜISMO
 
 La institución es de educación superior sujeta a la inspección y vigilancia del Ministerio de Educación Nacional. Ofrece programas de Pregrado y Postgrado.
+
+INSTRUCCIONES IMPORTANTES PARA RESPONDER SOBRE CARRERAS:
+- Cuando el usuario pregunte por carreras, SIEMPRE:
+  1. Presenta la lista COMPLETA de facultades y sus carreras
+  2. Si pregunta por una carrera ESPECÍFICA, da TODOS estos detalles:
+     - Nombre completo
+     - Facultad a la que pertenece
+     - Duración (semestres)
+     - Modalidad (Presencial)
+     - Descripción detallada de qué forma
+     - Perfil profesional (habilidades y competencias)
+     - Campo laboral (donde pueden trabajar)
+     - Requisitos de admisión
+     - Decano responsable
+     - Información de contacto de la facultad
+  3. Si pregunta por UNA FACULTAD, lista todas sus carreras con un resumen de cada una
+  4. Responde SIEMPRE en español
+  5. Sé profesional pero amigable
 
 Responde de forma clara, cortés y útil usando esta información. Cuando pregunten por admisiones, pregúntale si le interesa Pregrado o Postgrado. Si no conoces algo, indícalo honestamente.
 """
@@ -253,12 +271,17 @@ def logout():
 
 @app.route('/')
 def index():
-    return send_from_directory('static', 'index.html')
+    return send_from_directory('.', 'Asistente Virtual UdeMedellin.html')
 
 @app.route('/asistente')
 def asistente():
     """Sirve el nuevo diseño React del asistente"""
     return send_from_directory('.', 'Asistente Virtual UdeMedellin.html')
+
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    """Sirve archivos de la carpeta assets"""
+    return send_from_directory('assets', filename)
 
 @app.route('/<path:filename>')
 def serve_root_files(filename):

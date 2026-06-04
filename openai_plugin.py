@@ -10,7 +10,22 @@ from openai import OpenAI
 from database import save_conversation, get_learned_response, increment_learned_usage
 
 load_dotenv()
-client = OpenAI()
+
+# Configurar cliente OpenRouter o OpenAI
+openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+openai_key = os.environ.get("OPENAI_API_KEY")
+
+if openrouter_key and openrouter_key.startswith("sk-or-"):
+    # Usar OpenRouter
+    client = OpenAI(
+        api_key=openrouter_key,
+        base_url="https://openrouter.ai/api/v1"
+    )
+    default_model = os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+else:
+    # Fallback a OpenAI
+    client = OpenAI(api_key=openai_key if openai_key else None)
+    default_model = os.environ.get("OPENAI_MODEL", "gpt-3.5-turbo")
 
 SYSTEM_PROMPT = (
     "Eres un asistente personal experto en preguntas sobre una universidad. "
@@ -38,10 +53,31 @@ def _trim_history() -> None:
 
 
 def openai_handler(prompt: str) -> Optional[str]:
-    """Usar OpenAI para generar la respuesta si la clave está configurada."""
-    api_key = os.environ.get("OPENAI_API_KEY")
+    """Usar OpenRouter/OpenAI para generar la respuesta si la clave está configurada."""
+    api_key = os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPENAI_API_KEY")
     # Ignore placeholder keys or obvious dummy values
     if not api_key or api_key.lower().startswith("tu_") or api_key.lower() in {"tu_api_key", "tu_api_key-aqui", "your_api_key_here"}:
+        return None
+
+    # IMPORTANTE: Si es pregunta sobre carreras/programas, dejar que info_plugin responda
+    # porque tiene información estructurada y completa
+    institutional_keywords = [
+        'carrera', 'programa', 'pregrado', 'postgrado', 'maestría', 'especialización',
+        'doctorado', 'beca', 'estímulo', 'facultad', 'ingeniería', 'derecho', 'diseño',
+        'comunicación', 'psicología', 'administración', 'economía', 'derecho penal',
+        'requisito', 'admisión', 'inscripción', 'matricula', 'duración', 'modalidad',
+        'perfil profesional', 'campo laboral', 'campus', 'biblioteca', 'horario',
+        'contacto', 'teléfono', 'email', 'instalación', 'laboratorio',
+        'idioma', 'idiomas', 'centro de idiomas', 'inglés', 'ingles', 'francés', 'frances',
+        'italiano', 'portugués', 'portugues', 'español', 'espanol', 'bilingüismo', 'multilingüismo',
+        'certificación lingüística', 'toefl', 'ielts', 'cambridge', 'delf', 'ecct', 'lengua', 'lenguas extranjeras',
+        'tramite', 'tramites', 'certificado', 'certificados', 'solicitud', 'petición', 'pqrsf',
+        'prematricula', 'grado', 'diploma', 'practica', 'practicas', 'pse', 'servicios en linea',
+        'plataforma', 'portal', 'carné', 'cancelacion', 'evaluacion', 'titulo', 'egreso'
+    ]
+    p_lower = prompt.lower()
+    if any(kw in p_lower for kw in institutional_keywords):
+        # Dejar que info_plugin responda sobre temas institucionales
         return None
 
     # Check learned responses FIRST - return immediately if found
@@ -50,8 +86,7 @@ def openai_handler(prompt: str) -> Optional[str]:
         increment_learned_usage(prompt.lower())
         return learned
 
-    client.api_key = api_key
-    model = os.environ.get("OPENAI_MODEL", "gpt-3.5-turbo")
+    model = default_model
 
     user_message = {"role": "user", "content": prompt}
     messages = conversation_history + [user_message]

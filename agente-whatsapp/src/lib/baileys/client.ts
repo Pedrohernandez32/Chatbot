@@ -1,190 +1,197 @@
 import { Boom } from "@hapi/boom";
 import makeWASocket, {
-  AuthenticationCreds,
-  AuthenticationState,
   Browsers,
-  BufferJSON,
   DisconnectReason,
-  isJidBroadcast,
-  isJidStatusBroadcast,
-  makeCacheableSignalKeyStore,
-  makeInMemoryStore,
-  proto,
+  fetchLatestBaileysVersion,
   useMultiFileAuthState,
 } from "@whiskeysockets/baileys";
 import fs from "fs";
 import path from "path";
 import pino from "pino";
+import qrcode from "qrcode-terminal";
 import { setConnectionState } from "../db";
 
 const logger = pino({ level: "silent" });
-
 const authDir = path.resolve(process.cwd(), "auth");
 
 let socket: ReturnType<typeof makeWASocket> | null = null;
-let retryCount = 0;
-let connectionAttempts = 0;
+let attemptCount = 0;
+const MAX_ATTEMPTS = 50;
 
 export async function initializeSocket() {
-  connectionAttempts++;
-  console.log(`[Baileys] 🔄 Intento ${connectionAttempts} de conexión a WhatsApp...`);
+  attemptCount++;
+  console.log(`\n[WhatsApp] 🔄 INTENTO ${attemptCount}/${MAX_ATTEMPTS}`);
 
   if (socket) {
     try {
-      socket.ws?.close();
-      socket.end();
+      socket.ws?.close?.();
+      await socket.end?.();
     } catch (e) {
-      // ignore
+      //
     }
     socket = null;
+    await new Promise((r) => setTimeout(r, 1000));
   }
 
   try {
-    // Usar el sistema de autenticación multi-archivo de Baileys
+    console.log("[WhatsApp] Cargando estado...");
     const { state, saveCreds } = await useMultiFileAuthState(authDir);
 
-    console.log("[Baileys] Usando sistema de autenticación multi-archivo");
+    const version = await fetchLatestBaileysVersion();
+    console.log("[WhatsApp] Versión Baileys:", version.version.join("."));
 
     const sock = makeWASocket({
+      version: version.version as [number, number, number],
       auth: state,
       logger,
       browser: Browsers.ubuntu("Desktop"),
-      generateHighQualityLinkPreview: false,
-      shouldSyncHistoryMessage: () => false,
-      markOnlineOnConnect: false,
-      defaultQueryTimeoutMs: 0,
+      syncFullHistory: false,
+      shouldIgnoreJid: (jid: string) => !jid.includes("@s.whatsapp.net"),
+      markOnlineOnConnect: true,
       retryRequestDelayMs: 100,
-      maxMsToWaitForConnection: 30000,
-      emitOwnEventsOnly: false,
-      linkPreviewImageThumbnailWidth: 192,
-      transactionTimeout: 40000,
-      keepAliveIntervalMs: 30000,
-      qrTimeout: 60000,
+      maxMsToWaitForConnection: 60000,
+      defaultQueryTimeoutMs: 0,
+      qrTimeout: 120000,
+      emitOwnEventsOnly: true,
+      connectTimeoutMs: 60000,
+      keepAliveIntervalMs: 15000,
+      connectionConfig: {
+        maxRetries: 10,
+        retryRequestDelayMs: 100,
+      },
     });
 
-    // Guardar credenciales cada vez que se actualicen
-    sock.ev.on("creds.update", saveCreds);
+    let qrShown = false;
 
-    // Manejo de conexión
     sock.ev.on("connection.update", async (update) => {
-      const { connection, lastDisconnect, qr, isNewLogin } = update;
+      const { connection, lastDisconnect, qr } = update;
 
-      console.log("[Baileys] Estado:", { connection, hasQR: !!qr, isNewLogin });
+      console.log("[WhatsApp] Evento:", {
+        connection,
+        hasQR: !!qr,
+        errorCode: (lastDisconnect?.error as any)?.output?.statusCode,
+      });
 
-      // QR Code
       if (qr) {
-        console.log("\n╔═══════════════════════════════════════════════════╗");
-        console.log("║        📱 ESCANEA CON WHATSAPP - QR CODE 📱       ║");
-        console.log("║  WhatsApp > Más opciones > Vincular un dispositivo ║");
-        console.log("╚═══════════════════════════════════════════════════╝\n");
-        console.log(qr);
-        console.log("\n");
+        if (!qrShown) {
+          qrShown = true;
+          console.log("[WhatsApp] 📱 QR disponible en: http://localhost:3000/qr");
+        }
 
-        connectionAttempts = 0;
-        retryCount = 0;
+        attemptCount = 0;
         setConnectionState({
           status: "qr",
           qr_string: qr,
         });
       }
 
-      // Conectando
       if (connection === "connecting") {
-        console.log("[Baileys] ⏳ Conectando a WebSocket de WhatsApp...");
+        console.log("[WhatsApp] ⏳ Conectando a WhatsApp Web...");
         setConnectionState({ status: "connecting" });
       }
 
-      // Conectado
       if (connection === "open") {
-        console.log("[Baileys] ✅ ¡CONECTADO EXITOSAMENTE!");
-        console.log(`[Baileys] Tu número WhatsApp: ${sock.user?.id}`);
+        qrShown = false;
+        console.log("[WhatsApp] ✅ ¡CONECTADO EXITOSAMENTE!");
+        console.log(`[WhatsApp] Número: ${sock.user?.id}`);
+        console.log("[WhatsApp] Listo para recibir mensajes...");
 
-        connectionAttempts = 0;
-        retryCount = 0;
-
+        attemptCount = 0;
         setConnectionState({
           status: "connected",
           phone: sock.user?.id?.split(":")?.[0] || null,
           qr_string: null,
         });
 
-        // Escuchar mensajes entrantes
+        // Escuchar TODOS los eventos para diagnosticar
+        console.log("[WhatsApp] 🎧 Listeners de eventos activados");
+
+        // Interceptor de TODOS los eventos
+        const originalOn = sock.ev.on.bind(sock.ev);
+        sock.ev.on = function(event, listener) {
+          if (!event.includes('connection') && !event.includes('qr')) {
+            console.log(`[WhatsApp] 📡 Evento disponible: ${event}`);
+          }
+          return originalOn(event, listener);
+        };
+
+        // Listeners principales
         sock.ev.on("messages.upsert", async (m) => {
+          console.log(`[WhatsApp] 📨 messages.upsert: ${m.messages.length} mensaje(s)`);
           for (const msg of m.messages) {
-            // Solo procesar mensajes que no sean nuestros
+            console.log(`[WhatsApp] ├─ fromMe=${msg.key.fromMe}, jid=${msg.key.remoteJid}`);
             if (!msg.key.fromMe) {
-              const remoteJid = msg.key.remoteJid;
-
-              // Ignorar broadcasts y estados
-              if (isJidBroadcast(remoteJid!) || isJidStatusBroadcast(remoteJid!)) {
-                continue;
-              }
-
-              const text = msg.message?.conversation ||
-                msg.message?.extendedTextMessage?.text ||
-                "";
-
-              if (text) {
-                const from = remoteJid?.split("@")?.[0];
-                console.log(`[Baileys] 📨 Mensaje de ${from}: ${text.substring(0, 50)}`);
-
-                // Importar y usar handler
-                try {
-                  const { handleIncomingMessage } = await import("./handler");
-                  await handleIncomingMessage(msg);
-                } catch (error) {
-                  console.error("[Baileys] Error procesando mensaje:", error);
-                }
+              try {
+                const { handleIncomingMessage } = await import("../baileys/handler");
+                await handleIncomingMessage(msg);
+              } catch (error) {
+                console.error("[WhatsApp] Error:", error);
               }
             }
           }
         });
+
+        // Intentar otros eventos posibles
+        sock.ev.on("messages", async (m) => {
+          console.log(`[WhatsApp] 🔔 messages event recibido`);
+        });
+
+        sock.ev.on("chats.upsert", (chats) => {
+          console.log(`[WhatsApp] 💬 chats.upsert: ${chats.length} chat(s)`);
+        });
+
+        // Log periódico para confirmar que está escuchando
+        setInterval(() => {
+          console.log("[WhatsApp] ✓ Bot activo y escuchando...");
+        }, 30000);
       }
 
-      // Desconectado
       if (connection === "close") {
         const reason = (lastDisconnect?.error as Boom)?.output?.statusCode;
-        console.log(`[Baileys] ❌ Desconectado${reason ? ` (código: ${reason})` : ""}`);
+        const shouldReconnect =
+          reason !== DisconnectReason.loggedOut && attemptCount < MAX_ATTEMPTS;
 
-        if (reason === DisconnectReason.loggedOut) {
-          console.log("[Baileys] Sesión finalizada por el usuario");
-          fs.rmSync(authDir, { recursive: true, force: true });
-          setConnectionState({ status: "disconnected" });
+        if (shouldReconnect) {
+          const delay = Math.min(2000 + attemptCount * 500, 30000);
+          console.log(
+            `[WhatsApp] ❌ Desconectado (código ${reason}). Reintentando en ${(delay / 1000).toFixed(1)}s...`
+          );
+          setTimeout(() => initializeSocket(), delay);
         } else {
-          // Reintentar reconexión
-          retryCount++;
-          if (retryCount < 30) {
-            const delay = Math.min(2000 + retryCount * 1000, 60000);
-            console.log(
-              `[Baileys] 🔄 Reconectando en ${(delay / 1000).toFixed(0)}s (intento ${retryCount}/30)...`
-            );
-            await new Promise((resolve) => setTimeout(resolve, delay));
-            await initializeSocket();
-          } else {
-            console.log("[Baileys] ❌ Máximo de intentos de reconexión alcanzado");
-            setConnectionState({ status: "disconnected" });
-          }
+          console.log(`[WhatsApp] ❌ Conexión perdida. ${attemptCount >= MAX_ATTEMPTS ? "Máximo de intentos alcanzado." : "Sesión cerrada."}`);
+          setConnectionState({ status: "disconnected" });
         }
       }
     });
 
+    sock.ev.on("creds.update", () => {
+      console.log("[WhatsApp] 💾 Guardando credenciales...");
+      saveCreds();
+    });
+
+    sock.ev.on("call", async (node) => {
+      console.log("[WhatsApp] 📞 Llamada entrante (ignorada)");
+    });
+
+    process.on("uncaughtException", (error) => {
+      console.error("[WhatsApp] Error sin capturar:", error.message);
+    });
+
     socket = sock;
-    console.log("[Baileys] ✓ Socket creado correctamente");
+    console.log("[WhatsApp] ✓ Socket inicializado con Opera GX");
     return sock;
   } catch (error) {
-    console.error("[Baileys] Error fatal:", error);
-    setConnectionState({ status: "disconnected" });
+    console.error("[WhatsApp] ❌ Error:", String(error).substring(0, 100));
 
-    connectionAttempts++;
-    if (connectionAttempts < 20) {
-      const delay = 5000 + Math.random() * 5000;
+    if (attemptCount < MAX_ATTEMPTS) {
+      const delay = 3000 + attemptCount * 500;
       console.log(
-        `[Baileys] Reintentando en ${(delay / 1000).toFixed(0)}s (${connectionAttempts}/20)...`
+        `[WhatsApp] Reintentando en ${(delay / 1000).toFixed(1)}s (${attemptCount}/${MAX_ATTEMPTS})...`
       );
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      await initializeSocket();
+      setTimeout(() => initializeSocket(), delay);
     } else {
-      console.log("[Baileys] No se pudo conectar después de 20 intentos");
+      console.log("[WhatsApp] ❌ NO SE PUDO CONECTAR DESPUÉS DE", MAX_ATTEMPTS, "INTENTOS");
+      setConnectionState({ status: "disconnected" });
     }
   }
 }
@@ -196,14 +203,13 @@ export function getSocket() {
 export async function disconnect() {
   if (socket) {
     try {
-      socket.end();
+      await socket.end?.();
     } catch (e) {
-      // ignore
+      //
     }
     socket = null;
   }
   setConnectionState({ status: "disconnected" });
-  console.log("[Baileys] Desconectado");
 }
 
 export async function clearAuth() {
@@ -212,8 +218,8 @@ export async function clearAuth() {
       fs.rmSync(authDir, { recursive: true, force: true });
     }
   } catch (e) {
-    // ignore
+    //
   }
-  console.log("[Baileys] Credenciales eliminadas. Reinicia para nuevo QR.");
+  console.log("[WhatsApp] Auth borrado. Reinicia para nuevo QR.");
   setConnectionState({ status: "disconnected", qr_string: null, phone: null });
 }

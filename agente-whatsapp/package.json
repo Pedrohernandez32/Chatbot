@@ -15,12 +15,13 @@
     "start:all": "concurrently --kill-others --names BOT,WEB --prefix-colors yellow,cyan \"npm run start:bot\" \"npm run dev\""
   },
   "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.22",
     "better-sqlite3": "^12.0.0",
     "concurrently": "^9.0.0",
     "next": "^16.0.0",
     "openai": "^4.52.0",
     "pino": "^9.0.0",
-    "qrcode": "^1.5.0",
+    "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

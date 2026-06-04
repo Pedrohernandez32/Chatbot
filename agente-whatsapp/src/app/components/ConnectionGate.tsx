@@ -46,10 +46,30 @@ export default function ConnectionGate() {
 
   if (connStatus.status === "disconnected" || connStatus.status === "qr") {
     return (
-      <div>
-        <QRScreen />
-        <div className="p-6 bg-gray-50">
-          <TestPanel />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            📱 WhatsApp Desconectado
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {connStatus.status === "qr"
+              ? "Escanea el QR para conectar"
+              : "Bot no conectado"}
+          </p>
+          <a
+            href="/qr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition mb-4"
+          >
+            📲 Abrir QR en Nueva Pestaña
+          </a>
+          <p className="text-sm text-gray-500 mt-6">
+            O usa <strong>Testing Mode</strong> abajo
+          </p>
+          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+            <TestPanel />
+          </div>
         </div>
       </div>
     );
