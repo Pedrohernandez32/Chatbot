@@ -242,6 +242,36 @@ def login_post():
         return redirect(url_for('index'))
     return render_template('login.html', error='Credenciales incorrectas')
 
+@app.route('/api/auth/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
+    admin_key = data.get('adminKey', '')
+    is_admin = data.get('isAdmin', False)
+
+    if not email or not password:
+        return jsonify({'error': 'Email y contraseña requeridos'}), 400
+
+    # Validar código de admin si intenta acceso administrativo
+    if is_admin and admin_key != 'ADMIN2024':
+        return jsonify({'error': 'Código de administrador incorrecto'}), 401
+
+    user_data = db.get_user_by_email(email)
+    if user_data and check_password_hash(user_data['password_hash'], password):
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user_data['id'],
+                'username': user_data['username'],
+                'email': user_data['email'],
+                'is_admin': user_data.get('is_admin', False)
+            },
+            'token': 'session_' + str(user_data['id'])
+        }), 200
+
+    return jsonify({'error': 'Usuario o contraseña incorrectos'}), 401
+
 @app.route('/register', methods=['POST'])
 def register_post():
     username = request.form.get('username', '').strip()
@@ -262,6 +292,34 @@ def register_post():
     password_hash = generate_password_hash(password)
     db.create_user(username, email, password_hash)
     return redirect(url_for('login', success='Cuenta creada exitosamente. Por favor inicia sesión.'))
+
+@app.route('/api/auth/register', methods=['POST'])
+def api_register():
+    data = request.get_json()
+    username = data.get('username', '').strip()
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
+
+    if not validate_username(username):
+        return jsonify({'error': 'Username debe tener 3-50 caracteres alfanuméricos'}), 400
+    if not validate_email(email):
+        return jsonify({'error': 'Email inválido'}), 400
+    if len(password) < 8:
+        return jsonify({'error': 'Contraseña debe tener al menos 8 caracteres'}), 400
+
+    existing = db.get_user_by_email(email)
+    if existing:
+        return jsonify({'error': 'Este correo ya está registrado'}), 400
+
+    try:
+        password_hash = generate_password_hash(password)
+        db.create_user(username, email, password_hash)
+        return jsonify({
+            'success': True,
+            'message': 'Cuenta creada exitosamente'
+        }), 201
+    except Exception as e:
+        return jsonify({'error': f'Error al crear la cuenta: {str(e)}'}), 500
 
 @app.route('/logout')
 @login_required
